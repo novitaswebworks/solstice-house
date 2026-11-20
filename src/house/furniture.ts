@@ -168,8 +168,8 @@ export function buildFurniture(g: THREE.Group): Promise<void> {
     ['drawer_cabinet', { x: 13.6, z: 13.3, ry: -Math.PI / 2, height: 1.1 }],
     ['ornate_mirror_01', { x: 13.82, z: 13.3, y: 1.35, ry: -Math.PI / 2, height: 0.9 }],
     ['potted_plant_02', { x: 8.8, z: 14.2, height: 0.9 }],
-    // Scanned cushions on the sofa (kept as the original .gltf; ids with a '/' load as-is)
-    ['throw_pillows_01/throw_pillows_01_1k.gltf', { x: 8.2, z: 3.85, y: 0.42, ry: 0, width: 0.95, lazy: true }],
+    // Scanned cushions on the sofa
+    ['throw_pillows_01', { x: 8.2, z: 3.85, y: 0.42, ry: 0, width: 0.95, lazy: true }],
     // Kitchen and dining
     ['ceramic_vase_01/ceramic_vase_01_1k.gltf', { x: 20.8, z: 5, y: 0.76, height: 0.32, lazy: true }],
     ['dining_chair_02', { x: 20.2, z: 3.95, ry: 0, height: 0.9, lazy: true }],
