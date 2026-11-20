@@ -87,7 +87,6 @@ export function buildFurniture(g: THREE.Group): Promise<void> {
   box(20.9, 1.55, 10.7, 2.6, 0.8, 0.34, C.green, 0.5);
   box(19.05, 1.7, 10.68, 1.0, 0.7, 0.3, '#b8b2a6', 0.3);
   box(19, 0.96, 8.4, 0.7, 0.02, 0.5, C.black, 0.3);
-  box(22.5, 0, 5, 0.6, 2.15, 1.8, '#9a968d', 0.35);
   box(20.8, 0.7, 5, 2.4, 0.06, 1.2, floorMaterial('oak', 2.4, 1.2), 0.6);
   for (const [lx, lz] of [[19.8, 4.5], [21.8, 4.5], [19.8, 5.5], [21.8, 5.5]] as const) cyl(lx, 0, lz, 0.04, 0.7, C.black, 0.4);
 
