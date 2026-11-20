@@ -1,0 +1,10 @@
+node_modules
+dist
+test-results
+playwright-report
+recordings
+*.tsbuildinfo
+.DS_Store
+.claude-flow
+.opencode
+.claude/settings.local.json
