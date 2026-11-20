@@ -83,7 +83,7 @@ export default function App() {
 
       <section className="intro" aria-label="Introduction">
         <p className="eyebrow">Ground plan · Six rooms · One day</p>
-        <h1>Follow the sun through a house.</h1>
+        <h1>Follow the <em>sun</em> through a house.</h1>
         <p className="lede">Scroll. The plan stands up, the walls close around you, and one day passes from dawn to dusk.</p>
       </section>
 
@@ -177,7 +177,7 @@ export default function App() {
 
       <section className={`finale${finale ? ' is-on' : ''}`} aria-hidden={!finale}>
         <p className="eyebrow">Solstice House</p>
-        <h2>A study in daylight.</h2>
+        <h2>A study in <em>daylight</em>.</h2>
         <p>Six rooms, one route, and twelve and a half hours of sun. The walls and plan are drawn in code; skies, materials and furniture are photographic scans.</p>
         <div className="finale__cta">
           <button type="button" className="btn btn--solid" onClick={() => jumpTo(0)}>Walk again</button>

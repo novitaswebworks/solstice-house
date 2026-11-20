@@ -2,9 +2,11 @@
   --paper: #f3ece0;
   --paper-glass: rgba(243, 236, 224, 0.88);
   --ink: #2a2623;
-  --ink-soft: rgba(42, 38, 35, 0.64);
+  --ink-soft: rgba(42, 38, 35, 0.7);
   --line: rgba(42, 38, 35, 0.22);
   --accent: #c4572f;
+  /* Darker shade for small text: 4.99:1 on paper (the bright accent is 3.76:1). */
+  --accent-text: #a8471f;
   --green: #2f4a3c;
   --display: 'Fraunces', Georgia, serif;
   --sans: 'Instrument Sans', system-ui, sans-serif;
@@ -35,19 +37,21 @@ a { color: inherit; text-decoration: none; }
 .clock span { display: block; font: 500 26px/1 var(--display); letter-spacing: 0.02em; }
 .clock small { display: block; margin-top: 4px; font: 500 10px/1 var(--sans); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
 
-.eyebrow { margin: 0 0 14px; font: 600 11px/1.3 var(--sans); letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); }
+.eyebrow { margin: 0 0 14px; font: 600 11px/1.3 var(--sans); letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-text); }
 
 .intro {
   position: fixed; z-index: 4; left: var(--gutter); bottom: clamp(36px, 9vh, 88px); width: min(420px, calc(100vw - 2 * var(--gutter)));
   opacity: var(--plan); pointer-events: none;
 }
 .intro > * { animation: rise 1s var(--ease) both; }
+h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
+.finale h2 em { font-style: italic; font-weight: 400; }
 .intro h1 { margin: 0; font: 500 clamp(36px, 5vw, 64px)/1 var(--display); letter-spacing: -0.02em; text-wrap: balance; }
 .lede { margin: 18px 0 0; max-width: 34ch; font: 400 16px/1.5 var(--sans); color: var(--ink-soft); }
 
 .labels { position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: var(--plan); overflow: hidden; }
 .label { position: absolute; left: 0; top: 0; display: grid; justify-items: center; gap: 2px; text-align: center; white-space: nowrap; will-change: transform; }
-.label b { font: 600 10px/1 var(--sans); letter-spacing: 0.16em; color: var(--accent); }
+.label b { font: 600 10px/1 var(--sans); letter-spacing: 0.16em; color: var(--accent-text); }
 .label span { font: 500 13px/1.1 var(--display); letter-spacing: 0.01em; color: var(--ink); }
 .label i { font: 400 10px/1 var(--sans); font-style: normal; letter-spacing: 0.08em; color: var(--ink-soft); }
 
@@ -64,12 +68,12 @@ a { color: inherit; text-decoration: none; }
 
 .caption {
   position: fixed; z-index: 4; left: var(--gutter); bottom: clamp(28px, 7vh, 64px); width: min(400px, calc(100vw - 2 * var(--gutter)));
-  padding: 22px 24px 24px; background: var(--paper-glass); backdrop-filter: blur(14px); border: 1px solid var(--line);
+  padding: 22px 24px 24px; background: var(--paper-glass); backdrop-filter: blur(8px); border: 1px solid var(--line);
   opacity: 0; transform: translateY(12px); transition: opacity 0.5s var(--ease), transform 0.5s var(--ease); pointer-events: none;
 }
 .caption.is-on { opacity: 1; transform: none; }
 .caption__in { animation: rise 0.7s var(--ease) both; }
-.caption__no { margin: 0 0 12px; font: 600 10.5px/1.3 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+.caption__no { margin: 0 0 12px; font: 600 10.5px/1.3 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-text); }
 .caption h2 { margin: 0 0 10px; font: 500 clamp(28px, 3vw, 40px)/1 var(--display); letter-spacing: -0.015em; animation: wipe 0.9s var(--ease) both; }
 .progress { position: fixed; z-index: 6; inset: 0 0 auto 0; height: 2px; background: var(--accent); transform-origin: left; transform: scaleX(var(--progress)); pointer-events: none; }
 .caption__num { display: inline-block; margin-right: 8px; font: 500 22px/1 var(--display); letter-spacing: -0.01em; vertical-align: -3px; }
@@ -77,10 +81,10 @@ a { color: inherit; text-decoration: none; }
 .caption__foot .caption__more { margin-top: 0; }
 .caption__step { display: flex; gap: 6px; }
 .caption__step button { width: 34px; height: 34px; border: 1px solid var(--line); background: none; font: 500 15px/1 var(--sans); transition: border-color 0.3s var(--ease), color 0.3s var(--ease); }
-.caption__step button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.caption__step button:hover:not(:disabled) { border-color: var(--accent-text); color: var(--accent-text); }
 .caption__step button:disabled { opacity: 0.3; cursor: default; }
 .caption__step button:focus-visible, .caption__more:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.caption__more { margin-top: 14px; padding: 0; border: 0; background: none; font: 600 10.5px/1 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); text-decoration: underline; text-underline-offset: 4px; pointer-events: auto; }
+.caption__more { margin-top: 14px; padding: 0; border: 0; background: none; font: 600 10.5px/1 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-text); text-decoration: underline; text-underline-offset: 4px; pointer-events: auto; }
 .caption.is-on { pointer-events: auto; }
 .label--sun i { padding: 1px 5px; background: var(--paper); font-size: 10px; color: var(--ink-soft); }
 .file {
@@ -96,14 +100,14 @@ a { color: inherit; text-decoration: none; }
 .file dd { margin: 0; font: 400 13.5px/1.45 var(--sans); }
 .sunbar {
   position: fixed; z-index: 5; left: 50%; bottom: 22px; transform: translate(-50%, 8px); display: flex; align-items: center; gap: 12px;
-  padding: 9px 14px; background: var(--paper-glass); backdrop-filter: blur(12px); border: 1px solid var(--line); opacity: 0; pointer-events: none;
+  padding: 9px 14px; background: var(--paper-glass); backdrop-filter: blur(8px); border: 1px solid var(--line); opacity: 0; pointer-events: none;
   transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
 }
 .sunbar.is-on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
 .sunbar label { font: 600 10px/1 var(--sans); letter-spacing: 0.16em; text-transform: uppercase; }
 .sunbar input { width: clamp(120px, 22vw, 260px); accent-color: var(--accent); }
 .sunbar button { padding: 4px 0; border: 0; background: none; font: 600 10px/1 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
-.sunbar button.is-on { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
+.sunbar button.is-on { color: var(--accent-text); text-decoration: underline; text-underline-offset: 4px; }
 
 .caption__in > p:not(.caption__no) { margin: 0; font: 400 15px/1.5 var(--sans); color: var(--ink-soft); }
 
@@ -131,13 +135,15 @@ a { color: inherit; text-decoration: none; }
 .finale__cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
 .btn { height: 40px; padding: 0 18px; border: 1px solid currentColor; background: none; font: 600 11px/1 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; transition: background 0.3s, color 0.3s; }
 .btn:hover { background: rgba(243, 236, 224, 0.12); }
-.btn--solid { background: var(--accent); border-color: var(--accent); color: #fff; }
-.btn--solid:hover { background: #d4663d; }
+.btn--solid { background: var(--accent-text); border-color: var(--accent-text); color: #fff; }
+.btn--solid:hover { background: #973f1b; border-color: #973f1b; }
 .btn:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
 
 .loader { position: fixed; inset: 0; z-index: 30; display: grid; place-content: center; justify-items: center; gap: 18px; background: var(--paper); transition: opacity 0.8s var(--ease), visibility 0.8s; }
 .loader.is-done { opacity: 0; visibility: hidden; pointer-events: none; }
 .loader .sun-mark { width: 40px; height: 40px; animation: spin 14s linear infinite; }
+/* Stop looping once hidden, so nothing animates off screen. */
+.loader.is-done .sun-mark, .hint:not(.is-on) i, .app:not([data-room="-1"]) .hint i { animation: none; }
 .loader p { margin: 0; font: 500 22px/1 var(--display); }
 .loader i { display: block; width: 180px; height: 2px; background: var(--line); }
 .loader b { display: block; height: 100%; background: var(--accent); transform-origin: left; transform: scaleX(var(--load, 0)); transition: transform 0.3s var(--ease); }
