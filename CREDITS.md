@@ -12,8 +12,7 @@ Photographic assets come from [Poly Haven](https://polyhaven.com) and are releas
 
 Textures were converted to WebP, and models were optimised with glTF-Transform (Meshopt compression,
 1024 px textures, and a lower triangle count for `searsia_lucida`).
-`throw_pillows_01` was optimised the same way (glTF-Transform 4.1.0: Meshopt, WebP, 1024 px). `ceramic_vase_01` is
-Poly Haven's original 1k glTF, unmodified.
+`throw_pillows_01` and `ceramic_vase_01` were optimised the same way (glTF-Transform 4.1.0: Meshopt, WebP, 1024 px).
 
 Garden trees, the olive, the bed and the kitchen joinery are drawn in code; leaf and bark textures are
 painted on a canvas at load time.

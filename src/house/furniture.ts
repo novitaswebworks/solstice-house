@@ -171,7 +171,7 @@ export function buildFurniture(g: THREE.Group): Promise<void> {
     // Scanned cushions on the sofa
     ['throw_pillows_01', { x: 8.2, z: 3.85, y: 0.42, ry: 0, width: 0.95, lazy: true }],
     // Kitchen and dining
-    ['ceramic_vase_01/ceramic_vase_01_1k.gltf', { x: 20.8, z: 5, y: 0.76, height: 0.32, lazy: true }],
+    ['ceramic_vase_01', { x: 20.8, z: 5, y: 0.76, height: 0.32, lazy: true }],
     ['dining_chair_02', { x: 20.2, z: 3.95, ry: 0, height: 0.9, lazy: true }],
     ['dining_chair_02', { x: 21.4, z: 3.95, ry: 0, height: 0.9, lazy: true }],
     ['dining_chair_02', { x: 20.2, z: 6.05, ry: Math.PI, height: 0.9, lazy: true }],

@@ -127,7 +127,7 @@ const models = new Map<string, Promise<THREE.Object3D>>();
 function loadModel(id: string, lazy: boolean) {
   let p = models.get(id);
   if (!p) {
-    p = (lazy ? lazyGltfLoader : gltfLoader).loadAsync(assetUrl(`models/${id.includes('/') ? id : `${id}.glb`}`)).then((gltf) => {
+    p = (lazy ? lazyGltfLoader : gltfLoader).loadAsync(assetUrl(`models/${id}.glb`)).then((gltf) => {
       gltf.scene.traverse((o) => {
         const m = o as THREE.Mesh;
         if (!m.isMesh) return;
