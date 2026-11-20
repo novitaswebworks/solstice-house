@@ -25,6 +25,15 @@ export function plasterMaterial() {
   m.color.set('#ffffff');
   // A faint warm glow lifts walls that face away from the sun.
   m.emissive.set('#3a342c');
+  // The scan's stains read as grey concrete at full strength; blend it 35% over white to keep only the trowel texture.
+  m.onBeforeCompile = (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `
+      #ifdef USE_MAP
+        diffuseColor *= mix(vec4(1.0), texture2D(map, vMapUv), 0.35);
+      #endif
+    `);
+  };
+  m.customProgramCacheKey = () => 'plaster-softened';
   return m;
 }
 

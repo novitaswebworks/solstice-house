@@ -311,7 +311,7 @@ export function createHouseRuntime(
     house.roof.visible = true;
     house.root.updateMatrixWorld(true);
     const blockers: THREE.Object3D[] = [];
-    house.rising.traverse((o) => { if ((o as THREE.Mesh).isMesh && !o.userData.noAO && !house.caps.children.includes(o)) blockers.push(o); });
+    house.rising.traverse((o) => { if ((o as THREE.Mesh).isMesh && (!o.userData.noAO || o.userData.sunBlocker) && !house.caps.children.includes(o)) blockers.push(o); });
     house.roof.traverse((o) => { if ((o as THREE.Mesh).isMesh) blockers.push(o); });
     const ray = new THREE.Raycaster();
     ray.far = 80;

@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
+import { createTrees } from './trees';
 import { plain, floorMaterial, fabricMaterial } from './materials';
 import { placeModel, pbrMaterial, type ModelFit } from './assets';
 
@@ -30,7 +32,10 @@ export function buildFurniture(g: THREE.Group): Promise<void> {
     return m;
   };
   const box = (cx: number, baseY: number, cz: number, w: number, h: number, d: number, material: THREE.Material | string, rough = 0.8) => {
-    const m = shadow(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), typeof material === 'string' ? mat(material, rough) : material));
+    // Softly rounded edges (up to 1.8 cm) catch a highlight the way real joinery does; paper-thin pieces stay square.
+    const r = Math.min(0.018, Math.min(w, h, d) * 0.35);
+    const geo = r < 0.004 ? new THREE.BoxGeometry(w, h, d) : new RoundedBoxGeometry(w, h, d, 2, r);
+    const m = shadow(new THREE.Mesh(geo, typeof material === 'string' ? mat(material, rough) : material));
     m.position.set(cx, baseY + h / 2, cz);
     g.add(m);
     return m;
@@ -44,26 +49,18 @@ export function buildFurniture(g: THREE.Group): Promise<void> {
 
   // ── Built-ins and soft furnishings (drawn in code) ──
   // Gate court: stepping stones, a bench and an olive tree
-  for (let i = 0; i < 5; i++) box(11, 0, 16.2 + i * 0.95, 1.2, 0.05, 0.6, C.stone, 0.9);
-  box(13.4, 0, 17.6, 0.5, 0.45, 2.2, C.stone, 0.9);
-  const olive = new THREE.Group();
-  olive.position.set(9.2, 0, 17.2);
-  olive.scale.setScalar(0.72);
-  const trunk = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.22, 1.9, 10), mat('#6b5846', 0.95)));
-  trunk.position.set(0, 0.95, 0);
-  olive.add(trunk);
-  for (const [dx, dy, dz, r] of [[0, 2.5, 0, 1.15], [0.7, 2.1, 0.4, 0.8], [-0.6, 2.2, -0.4, 0.85], [0.1, 3.0, -0.2, 0.7]] as const) {
-    const b = shadow(new THREE.Mesh(new THREE.IcosahedronGeometry(r, 2), mat('#5d7049', 0.95)));
-    b.position.set(dx, dy, dz);
-    olive.add(b);
-  }
-  g.add(olive);
+  // Stone pieces share the kitchen's photographic stone tile, so nothing new loads.
+  const stone = (w: number, d: number) => floorMaterial('stone', w, d);
+  for (let i = 0; i < 5; i++) box(11, 0, 16.2 + i * 0.95, 1.2, 0.05, 0.6, stone(1.2, 0.6));
+  box(13.4, 0, 17.6, 0.5, 0.45, 2.2, stone(0.5, 2.2));
+  g.add(createTrees([{ x: 9.2, z: 17.2, scale: 0.8, olive: true }], 2));
 
   // The gate: two timber leaves swung open into the court, and a stone path out to the street
-  for (const gx of [9.8, 12.2]) box(gx, 0, 20.35, 0.08, 2.0, 1.2, '#5a4432', 0.6);
-  box(9.78, 0, 21, 0.2, 2.2, 0.3, C.stone, 0.9);
-  box(12.22, 0, 21, 0.2, 2.2, 0.3, C.stone, 0.9);
-  for (let i = 0; i < 5; i++) box(11, 0, 22.2 + i * 1.1, 1.4, 0.05, 0.7, C.stone, 0.9);
+  const gateWood = floorMaterial('oakDark', 1.2, 2.0);
+  for (const gx of [9.8, 12.2]) box(gx, 0, 20.35, 0.08, 2.0, 1.2, gateWood);
+  box(9.78, 0, 21, 0.2, 2.2, 0.3, stone(0.3, 2.2));
+  box(12.22, 0, 21, 0.2, 2.2, 0.3, stone(0.3, 2.2));
+  for (let i = 0; i < 5; i++) box(11, 0, 22.2 + i * 1.1, 1.4, 0.05, 0.7, stone(1.4, 0.7));
 
   // Hall runner
   box(11, 0.005, 13, 1.4, 0.02, 3.2, fabricMaterial(1.4, 3.2, C.terracotta));
@@ -75,18 +72,52 @@ export function buildFurniture(g: THREE.Group): Promise<void> {
   shade.position.set(4.6, 1.7, 8.6);
   g.add(shade);
 
-  // Kitchen: cabinetry and island, with a timber table
-  box(18.8, 0, 10.6, 7.6, 0.9, 0.6, C.green, 0.5);
+  // Kitchen: a dark carcass behind separate door fronts, so 4 mm shadow gaps read as joinery.
+  const carcass = '#22362b';
+  const steel = plain('#c4c6c6', 0.55, 0.45);
+  const handle = plain('#1f1c1a', 0.35, 0.6);
+  /** `n` door fronts across [x0, x1] and [y0, y1] on the face at z = `face`, facing `dir` (-1 north, +1 south). */
+  const fronts = (x0: number, x1: number, y0: number, y1: number, face: number, dir: number, n: number, pull: 'top' | 'bottom', skip = -1) => {
+    const w = (x1 - x0) / n;
+    for (let i = 0; i < n; i++) {
+      if (i === skip) continue;
+      const cx = x0 + w * (i + 0.5);
+      box(cx, y0, face + dir * 0.011, w - 0.004, y1 - y0, 0.02, C.green, 0.45);
+      box(cx, pull === 'top' ? y1 - 0.07 : y0 + 0.04, face + dir * 0.032, Math.min(0.26, w * 0.45), 0.014, 0.016, handle);
+    }
+    return w;
+  };
+  // Base run along the south wall: plinth, carcass, twelve fronts with an oven in the seventh slot.
+  box(18.8, 0, 10.66, 7.56, 0.1, 0.48, '#1b231e', 0.7);
+  box(18.8, 0.1, 10.62, 7.6, 0.8, 0.56, carcass, 0.6);
+  const slot = fronts(15, 22.6, 0.12, 0.86, 10.34, -1, 12, 'top', 6);
+  const ovenX = 15 + slot * 6.5;
+  box(ovenX, 0.12, 10.33, slot - 0.004, 0.74, 0.02, plain('#121212', 0.12, 0.2));
+  box(ovenX, 0.2, 10.318, slot - 0.12, 0.42, 0.004, plain('#050505', 0.05, 0.1));
+  box(ovenX, 0.74, 10.29, slot - 0.12, 0.018, 0.018, steel);
   box(18.8, 0.9, 10.6, 7.8, 0.05, 0.64, '#e7e2d8', 0.25);
-  box(19, 0, 8.4, 3, 0.9, 1, C.green, 0.5);
+  // Sink with a pillar tap, set into the worktop by the window end.
+  box(16.3, 0.951, 10.56, 0.74, 0.006, 0.46, steel);
+  box(16.3, 0.952, 10.56, 0.64, 0.006, 0.36, plain('#4f5457', 0.25, 0.85));
+  cyl(16.3, 0.95, 10.8, 0.016, 0.32, '#b9bdbf', 0.3);
+  const spout = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.22, 12), steel));
+  spout.rotation.x = Math.PI / 2;
+  spout.position.set(16.3, 1.26, 10.7);
+  g.add(spout);
+  // Island: plinth, carcass, fronts on the working (south) side, overhang for the stools to the north.
+  box(19, 0, 8.4, 2.9, 0.1, 0.9, '#1b231e', 0.7);
+  box(19, 0.1, 8.4, 3, 0.8, 1, carcass, 0.6);
+  fronts(17.5, 20.5, 0.12, 0.86, 8.9, 1, 5, 'top');
   box(19, 0.9, 8.4, 3.3, 0.06, 1.25, '#e7e2d8', 0.25);
-  // Tiled splashback, wall cabinets and a hob
+  // Tiled splashback, wall cabinets with fronts, a steel hood between them, and a hob on the island.
   const splash = pbrMaterial('long_white_tiles', 7.6, 0.6, 1.2);
   box(18.8, 0.95, 10.84, 7.6, 0.55, 0.02, splash);
-  box(17.2, 1.55, 10.7, 3.2, 0.8, 0.34, C.green, 0.5);
-  box(20.9, 1.55, 10.7, 2.6, 0.8, 0.34, C.green, 0.5);
-  box(19.05, 1.7, 10.68, 1.0, 0.7, 0.3, '#b8b2a6', 0.3);
-  box(19, 0.96, 8.4, 0.7, 0.02, 0.5, C.black, 0.3);
+  box(17.2, 1.55, 10.72, 3.2, 0.8, 0.32, carcass, 0.6);
+  fronts(15.6, 18.8, 1.55, 2.35, 10.56, -1, 6, 'bottom');
+  box(20.9, 1.55, 10.72, 2.6, 0.8, 0.32, carcass, 0.6);
+  fronts(19.6, 22.2, 1.55, 2.35, 10.56, -1, 5, 'bottom');
+  box(19.2, 1.7, 10.68, 0.76, 0.66, 0.3, steel);
+  box(19, 0.96, 8.4, 0.7, 0.02, 0.5, plain('#0e0e0e', 0.15, 0.2));
   box(20.8, 0.7, 5, 2.4, 0.06, 1.2, floorMaterial('oak', 2.4, 1.2), 0.6);
   for (const [lx, lz] of [[19.8, 4.5], [21.8, 4.5], [19.8, 5.5], [21.8, 5.5]] as const) cyl(lx, 0, lz, 0.04, 0.7, C.black, 0.4);
 
@@ -100,12 +131,26 @@ export function buildFurniture(g: THREE.Group): Promise<void> {
   parasol.position.set(22.2, 2.55, 0.3);
   g.add(parasol);
 
-  // Bedroom: bed, rug
+  // Bedroom: rug, then a bed of soft, well-rounded pieces on a walnut frame. Head against the west wall.
   box(6.2, 0.005, -1, 3.4, 0.02, 2.8, fabricMaterial(3.4, 2.8, '#dcb98f'));
-  box(4.5, 0.1, -1, 2.2, 0.35, 1.9, fabricMaterial(2.2, 1.9, '#f4efe6'));
-  box(3.25, 0.1, -1, 0.15, 1.1, 2.1, C.walnut, 0.5);
-  for (const pz of [-1.55, -0.45]) box(3.9, 0.45, pz, 0.5, 0.12, 0.7, fabricMaterial(0.5, 0.7, '#ffffff'));
-  box(5.2, 0.45, -1, 1.1, 0.06, 1.95, fabricMaterial(1.1, 1.95, C.terracotta));
+  /** Upholstery and bedding: corners up to `r` round, optionally tipped about z (negative lifts the west end). */
+  const soft = (cx: number, baseY: number, cz: number, w: number, h: number, d: number, material: THREE.Material, r = 0.06, tilt = 0) => {
+    const m = shadow(new THREE.Mesh(new RoundedBoxGeometry(w, h, d, 3, Math.min(r, Math.min(w, h, d) / 2 - 0.001)), material));
+    m.position.set(cx, baseY + h / 2, cz);
+    m.rotation.z = tilt;
+    g.add(m);
+    return m;
+  };
+  const duvet = fabricMaterial(1.4, 2.0, '#ece5d9');
+  box(4.6, 0.02, -1, 2.1, 0.06, 1.8, '#1b1714', 0.8); // recessed plinth, so the bed seems to float
+  box(4.6, 0.08, -1, 2.3, 0.22, 2.0, floorMaterial('oakDark', 2.3, 2.0));
+  soft(4.62, 0.3, -1, 2.1, 0.22, 1.86, fabricMaterial(2.1, 1.86, '#f4efe6'), 0.07);
+  soft(5.0, 0.49, -1, 1.42, 0.08, 2.0, duvet, 0.04); // drapes past the mattress sides
+  soft(4.27, 0.52, -1, 0.26, 0.08, 2.0, duvet, 0.04); // cuff folded back
+  soft(5.35, 0.575, -1, 0.5, 0.025, 2.03, fabricMaterial(0.5, 2.0, C.terracotta), 0.012);
+  soft(3.24, 0.3, -1, 0.14, 0.95, 2.1, fabricMaterial(0.14, 2.1, '#cdbfa8'), 0.05); // upholstered headboard
+  for (const pz of [-1.48, -0.52]) soft(3.62, 0.56, pz, 0.5, 0.15, 0.74, fabricMaterial(0.5, 0.74, '#ffffff'), 0.07, -0.45);
+  soft(3.92, 0.53, -1, 0.15, 0.4, 0.4, fabricMaterial(0.4, 0.4, C.terracotta), 0.07, -0.22);
 
   // ── Photographic models (Poly Haven, CC0) ──
   const jobs: Array<[string, ModelFit]> = [
@@ -123,7 +168,10 @@ export function buildFurniture(g: THREE.Group): Promise<void> {
     ['drawer_cabinet', { x: 13.6, z: 13.3, ry: -Math.PI / 2, height: 1.1 }],
     ['ornate_mirror_01', { x: 13.82, z: 13.3, y: 1.35, ry: -Math.PI / 2, height: 0.9 }],
     ['potted_plant_02', { x: 8.8, z: 14.2, height: 0.9 }],
+    // Scanned cushions on the sofa (kept as the original .gltf; ids with a '/' load as-is)
+    ['throw_pillows_01/throw_pillows_01_1k.gltf', { x: 8.2, z: 3.85, y: 0.42, ry: 0, width: 0.95, lazy: true }],
     // Kitchen and dining
+    ['ceramic_vase_01/ceramic_vase_01_1k.gltf', { x: 20.8, z: 5, y: 0.76, height: 0.32, lazy: true }],
     ['dining_chair_02', { x: 20.2, z: 3.95, ry: 0, height: 0.9, lazy: true }],
     ['dining_chair_02', { x: 21.4, z: 3.95, ry: 0, height: 0.9, lazy: true }],
     ['dining_chair_02', { x: 20.2, z: 6.05, ry: Math.PI, height: 0.9, lazy: true }],

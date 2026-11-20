@@ -3,6 +3,7 @@ import { rooms, walls, pool, skylight, plotTrees, WALL_H, WALL_T, type Wall } fr
 import { floorMaterial, plain, plasterMaterial, poolTileMaterial, grassMaterial, waterNormalMap } from './materials';
 import { tileBoxUVs } from './assets';
 import { buildFurniture } from './furniture';
+import { createTrees } from './trees';
 
 export interface HouseParts {
   root: THREE.Group;
@@ -117,19 +118,6 @@ function addFloor(group: THREE.Group, kind: Parameters<typeof floorMaterial>[0],
   group.add(mesh);
 }
 
-export function addTree(group: THREE.Group, x: number, z: number, scale: number, olive = false) {
-  const trunk = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(0.1 * scale, 0.16 * scale, 1.6 * scale, 8), plain('#6b5846')));
-  trunk.position.set(x, 0.8 * scale, z);
-  group.add(trunk);
-  const leaf = plain(olive ? '#6f8159' : '#4a6840', 0.9);
-  const blobs: Array<[number, number, number, number]> = [[0, 2.1, 0, 1.0], [0.6, 1.7, 0.3, 0.7], [-0.5, 1.8, -0.3, 0.75], [0.1, 2.7, 0.2, 0.7], [-0.3, 1.4, 0.5, 0.55]];
-  for (const [bx, by, bz, br] of blobs) {
-    const blob = shadowed(new THREE.Mesh(new THREE.IcosahedronGeometry(br * scale, 1), leaf));
-    blob.position.set(x + bx * scale, by * scale, z + bz * scale);
-    group.add(blob);
-  }
-}
-
 export function buildHouse(): HouseParts {
   const root = new THREE.Group();
   const rising = new THREE.Group();
@@ -185,7 +173,8 @@ export function buildHouse(): HouseParts {
 
   // Ceilings: one slab per indoor room, with a skylight over the living room.
   const roof = new THREE.Group();
-  const roofMaterial = new THREE.MeshStandardMaterial({ color: '#f1ece3', roughness: 0.9, emissive: '#3a342c' });
+  // Ceilings only see bounce light, so a brighter, more neutral white keeps them from reading tan beside the walls.
+  const roofMaterial = new THREE.MeshStandardMaterial({ color: '#f7f5f1', roughness: 0.9, emissive: '#7a7670' });
   const slab = (x0: number, z0: number, x1: number, z1: number) => {
     const w = x1 - x0;
     const d = z1 - z0;
@@ -213,10 +202,8 @@ export function buildHouse(): HouseParts {
   rising.add(caps);
 
   const detailed = !matchMedia('(max-width: 760px), (pointer: coarse)').matches;
-  plotTrees.forEach(([x, z, s], i) => {
-    if (detailed && (i === 0 || i === 4)) return; // replaced by scanned trees
-    addTree(rising, x, z, s * 0.95);
-  });
+  // Trees 0 and 4 are replaced by scanned trees on desktop.
+  rising.add(createTrees(plotTrees.filter((_, i) => !(detailed && (i === 0 || i === 4))).map(([x, z, s]) => ({ x, z, scale: s * 0.95 }))));
 
   root.add(rising);
   root.add(furniture);
