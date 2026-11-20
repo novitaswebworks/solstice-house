@@ -43,10 +43,19 @@ export default function App() {
   const clockRef = useRef<HTMLSpanElement>(null);
   const labelRefs = useRef<Array<HTMLElement | null>>([]);
   const sliderRef = useRef<HTMLInputElement>(null);
-  const { roomIndex, finale, ready, error, jumpTo, roomProgress, setHour, sun } = useHouse(canvasRef, rootRef, labelRefs, clockRef, sliderRef);
+  const { roomIndex, finale, ready, error, jumpTo, roomProgress, setHour, sun, skies } = useHouse(canvasRef, rootRef, labelRefs, clockRef, sliderRef);
   const room = roomIndex >= 0 ? rooms[roomIndex] : null;
   const [fileOpen, setFileOpen] = useState(false);
   const [manual, setManual] = useState(false);
+  const [shared, setShared] = useState(false);
+  // The address already follows the walk (#kitchen), so sharing the page shares the room.
+  const share = async () => {
+    const url = location.href;
+    try {
+      if (navigator.share) await navigator.share({ title: `${room?.name ?? 'Solstice House'} · Solstice House`, url });
+      else { await navigator.clipboard.writeText(url); setShared(true); setTimeout(() => setShared(false), 1800); }
+    } catch { /* the visitor closed the share sheet */ }
+  };
 
   const toggleFile = () => setFileOpen((open) => !open);
   const facts = room ? roomFacts[room.id] : null;
@@ -95,7 +104,7 @@ export default function App() {
         </a>
         <div className={`clock${room ? ' is-on' : ''}`} aria-label="Time of day in the house">
           <span ref={clockRef}>07:00</span>
-          <small>Local sun</small>
+          <small>{skies ? 'Local sun' : 'Sky loading…'}</small>
         </div>
       </header>
 
@@ -142,9 +151,12 @@ export default function App() {
             <h2>{room.name}</h2>
             <p>{room.line}</p>
             <div className="caption__foot">
-              <button type="button" className="caption__more" aria-expanded={fileOpen} onClick={toggleFile}>
-                {fileOpen ? 'Close room file −' : 'Open room file +'}
-              </button>
+              <span className="caption__links">
+                <button type="button" className="caption__more" aria-expanded={fileOpen} onClick={toggleFile}>
+                  {fileOpen ? 'Close room file −' : 'Open room file +'}
+                </button>
+                <button type="button" className="caption__more" onClick={share} aria-live="polite">{shared ? 'Link copied' : 'Share'}</button>
+              </span>
               <span className="caption__step">
                 <button type="button" aria-label="Previous room" onClick={() => go(-1)}>←</button>
                 <button type="button" aria-label="Next room" disabled={roomIndex >= rooms.length - 1} onClick={() => go(1)}>→</button>

@@ -9,7 +9,8 @@
     "test": "playwright test",
     "test:list": "playwright test --list",
     "record": "node scripts/record-walkthrough.mjs",
-    "bake:sun": "node scripts/bake-sun-study.mjs"
+    "bake:sun": "node scripts/bake-sun-study.mjs",
+    "test:perf": "PERF=1 playwright test --project=chromium -g @perf"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",

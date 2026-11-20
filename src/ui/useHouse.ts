@@ -10,6 +10,8 @@ export interface HouseUi {
   error: string | null;
   /** Sun study per room, once measured. */
   sun: RoomSun[] | null;
+  /** Every sky has loaded; until then late hours show the nearest earlier sky. */
+  skies: boolean;
 }
 
 function usePrefersReducedMotion() {
@@ -39,7 +41,7 @@ export function useHouse(
   const runtimeRef = useRef<HouseRuntime | null>(null);
   const lenisRef = useRef<Lenis | null>(null);
   const overridingRef = useRef(false);
-  const [ui, setUi] = useState<HouseUi>({ roomIndex: -1, finale: false, ready: false, error: null, sun: null });
+  const [ui, setUi] = useState<HouseUi>({ roomIndex: -1, finale: false, ready: false, error: null, sun: null, skies: false });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -94,6 +96,7 @@ export function useHouse(
       if (cancelled) return;
       root.dataset.ready = 'true';
       setUi((s) => ({ ...s, ready: true }));
+      void runtime.skies.then(() => { if (!cancelled) setUi((s) => ({ ...s, skies: true })); });
       // Baked data resolves at once; a live study (no bake, or ?bake-sun) waits for every sky.
       void runtime.sunHours().then((sun) => { if (!cancelled) setUi((s) => ({ ...s, sun })); });
     });

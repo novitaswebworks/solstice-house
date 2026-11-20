@@ -8,3 +8,5 @@ recordings
 .claude-flow
 .opencode
 .claude/settings.local.json
+.vercel
+.env*

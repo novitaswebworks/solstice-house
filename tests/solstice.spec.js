@@ -137,6 +137,31 @@ test.describe('Solstice House', () => {
     await expect(page.locator('.fallback video')).toBeVisible();
   });
 
+  // Opt-in (npm run test:perf): frame timing is only meaningful on a quiet machine with a real GPU.
+  test('keeps a usable frame rate through the walk @perf', async ({ page }) => {
+    test.skip(!process.env.PERF, 'set PERF=1 to run');
+    await open(page);
+    await scrollTo(page, 0.3);
+    const frames = await page.evaluate(() => new Promise((resolve) => {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      const t0 = performance.now();
+      const times = [];
+      let last = t0;
+      const step = (t) => {
+        times.push(t - last);
+        last = t;
+        const k = (t - t0) / 8000;
+        window.scrollTo(0, max * (0.3 + 0.6 * Math.min(1, k)));
+        if (k < 1) requestAnimationFrame(step); else resolve(times.slice(5));
+      };
+      requestAnimationFrame(step);
+    }));
+    frames.sort((a, b) => a - b);
+    const median = frames[Math.floor(frames.length / 2)];
+    console.log(`median frame ${median.toFixed(1)} ms over ${frames.length} frames`);
+    expect(median).toBeLessThan(20); // 50 fps
+  });
+
   test('does not carry over any old project names', async ({ page }) => {
     await open(page);
     const html = (await page.content()).toLowerCase();

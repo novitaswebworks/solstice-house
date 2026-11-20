@@ -44,6 +44,8 @@ export interface RoomSun {
 export interface HouseRuntime {
   /** Resolves once the sky, textures and models have all loaded. */
   ready: Promise<void>;
+  /** Resolves when the skies fetched after `ready` have arrived too. */
+  skies: Promise<void>;
   setProgress(p: number): void;
   resize(): void;
   dispose(): void;
@@ -351,6 +353,7 @@ export function createHouseRuntime(
 
   return {
     ready,
+    skies: sky.complete.catch(() => undefined),
     setProgress(p) {
       progress = clamp01(p);
     },
