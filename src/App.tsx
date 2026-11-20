@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { rooms, dimensions, roomFacts, sunMarks } from './house/layout';
 import { useHouse } from './ui/useHouse';
+import { SUN_SLOT_START } from './house/runtime';
 
 const SunMark = () => (
   <svg className="sun-mark" viewBox="0 0 24 24" aria-hidden="true">
@@ -14,23 +15,40 @@ const SunMark = () => (
 
 const size = (r: (typeof rooms)[number]) => `${r.x1 - r.x0} × ${r.z1 - r.z0} m`;
 
+/** A day on a 24-hour strip: each quarter-hour slot is filled by how much of the room it lights. */
+const SunStrip = ({ slots }: { slots: number[] }) => (
+  <span className="strip">
+    <svg viewBox="0 0 96 6" preserveAspectRatio="none" aria-hidden="true">
+      <rect className="strip__day" x="0" y="2.5" width="96" height="1" />
+      {slots.map((f, i) => f > 0 && <rect key={i} x={SUN_SLOT_START * 4 + i} y="0" width="1.05" height="6" opacity={0.2 + 0.8 * f} />)}
+    </svg>
+    <span className="strip__ticks" aria-hidden="true"><i>00</i><i>06</i><i>12</i><i>18</i><i>24</i></span>
+  </span>
+);
+
+// The whole plan, faint, with one room filled: a pictogram for the room index.
+const PLAN = rooms.reduce((b, r) => ({ x0: Math.min(b.x0, r.x0), z0: Math.min(b.z0, r.z0), x1: Math.max(b.x1, r.x1), z1: Math.max(b.z1, r.z1) }),
+  { x0: Infinity, z0: Infinity, x1: -Infinity, z1: -Infinity });
+const PlanMark = ({ active }: { active: number }) => (
+  <svg className="planmark" viewBox={`${PLAN.x0 - 0.6} ${PLAN.z0 - 0.6} ${PLAN.x1 - PLAN.x0 + 1.2} ${PLAN.z1 - PLAN.z0 + 1.2}`} aria-hidden="true">
+    {rooms.map((r, i) => (
+      <rect key={r.id} x={r.x0} y={r.z0} width={r.x1 - r.x0} height={r.z1 - r.z0} className={i === active ? 'is-on' : ''} vectorEffect="non-scaling-stroke" />
+    ))}
+  </svg>
+);
+
 export default function App() {
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const clockRef = useRef<HTMLSpanElement>(null);
   const labelRefs = useRef<Array<HTMLElement | null>>([]);
   const sliderRef = useRef<HTMLInputElement>(null);
-  const { roomIndex, finale, ready, error, jumpTo, roomProgress, setHour, sunHours } = useHouse(canvasRef, rootRef, labelRefs, clockRef, sliderRef);
+  const { roomIndex, finale, ready, error, jumpTo, roomProgress, setHour, sun } = useHouse(canvasRef, rootRef, labelRefs, clockRef, sliderRef);
   const room = roomIndex >= 0 ? rooms[roomIndex] : null;
   const [fileOpen, setFileOpen] = useState(false);
-  const [hours, setHours] = useState<number[] | null>(null);
   const [manual, setManual] = useState(false);
 
-  const toggleFile = () => {
-    setFileOpen((open) => !open);
-    // Usually already measured in idle time after load; otherwise this waits for it.
-    if (!hours) void sunHours().then(setHours);
-  };
+  const toggleFile = () => setFileOpen((open) => !open);
   const facts = room ? roomFacts[room.id] : null;
 
   // Step one chapter along the walk; -1 is the plan.
@@ -66,7 +84,7 @@ export default function App() {
   }, [room]);
 
   return (
-    <div className="app" ref={rootRef}>
+    <div className={`app${finale ? ' is-finale' : ''}${room && fileOpen ? ' is-file' : ''}`} ref={rootRef}>
       <canvas ref={canvasRef} className="stage" aria-hidden="true" />
       <div className="progress" aria-hidden="true" />
 
@@ -136,7 +154,7 @@ export default function App() {
         )}
       </aside>
 
-      <aside className={`file${room && fileOpen ? ' is-on' : ''}`} aria-hidden={!(room && fileOpen)}>
+      <aside className={`file${room && fileOpen && !finale ? ' is-on' : ''}`} aria-hidden={!(room && fileOpen && !finale)}>
         {room && facts && (
           <>
             <p className="eyebrow">Room file · {room.no}</p>
@@ -145,7 +163,7 @@ export default function App() {
               <div><dt>Size</dt><dd>{size(room)}</dd></div>
               <div><dt>Area</dt><dd>{(room.x1 - room.x0) * (room.z1 - room.z0)} m²</dd></div>
               <div><dt>Opens to</dt><dd>{facts.faces}</dd></div>
-              <div><dt>Direct sun</dt><dd>{hours ? `${hours[roomIndex].toFixed(1)} hours a day` : 'Measuring…'}</dd></div>
+              <div><dt>Direct sun</dt><dd>{sun ? <>{sun[roomIndex].hours.toFixed(1)} hours a day<SunStrip slots={sun[roomIndex].slots} /></> : 'Measuring…'}</dd></div>
               <div><dt>Materials</dt><dd>{facts.materials.join(' · ')}</dd></div>
             </dl>
           </>
@@ -175,15 +193,27 @@ export default function App() {
         <i />
       </div>
 
-      <section className={`finale${finale ? ' is-on' : ''}`} aria-hidden={!finale}>
+      <section className={`finale${finale ? ' is-on' : ''}`} aria-hidden={!finale} inert={!finale}>
         <p className="eyebrow">Solstice House</p>
         <h2>A study in <em>daylight</em>.</h2>
-        <p>Six rooms, one route, and twelve and a half hours of sun. The walls and plan are drawn in code; skies, materials and furniture are photographic scans.</p>
+        <p>Six rooms, one route, and twelve and a half hours of sun. Step back into any room.</p>
+        <ol className="index" aria-label="Rooms">
+          {rooms.map((r, i) => (
+            <li key={r.id}>
+              <button type="button" onClick={() => jumpTo(roomProgress(i))}>
+                <PlanMark active={i} />
+                <span className="index__name"><b>{r.no}</b>{r.name}</span>
+                <span className="index__meta">{size(r)}{sun ? ` · ${sun[i].hours.toFixed(1)} h sun` : ''}</span>
+                {sun && <SunStrip slots={sun[i].slots} />}
+              </button>
+            </li>
+          ))}
+        </ol>
         <div className="finale__cta">
           <button type="button" className="btn btn--solid" onClick={() => jumpTo(0)}>Walk again</button>
           <button type="button" className="btn" onClick={() => jumpTo(roomProgress(0))}>Return to the gate</button>
         </div>
-        <p className="credit">Skies, materials and furniture models: <a href="https://polyhaven.com" target="_blank" rel="noreferrer">Poly Haven</a> (CC0).</p>
+        <p className="credit">The walls and plan are drawn in code. Skies, materials and furniture models: <a href="https://polyhaven.com" target="_blank" rel="noreferrer">Poly Haven</a> (CC0).</p>
       </section>
 
       {error && (

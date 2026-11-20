@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import Lenis from 'lenis';
 import { onLoadProgress } from '../house/assets';
-import { createHouseRuntime, STAGES, type FrameInfo, type HouseRuntime } from '../house/runtime';
+import { createHouseRuntime, STAGES, type FrameInfo, type HouseRuntime, type RoomSun } from '../house/runtime';
 
 export interface HouseUi {
   roomIndex: number;
   finale: boolean;
   ready: boolean;
   error: string | null;
+  /** Sun study per room, once measured. */
+  sun: RoomSun[] | null;
 }
 
 function usePrefersReducedMotion() {
@@ -37,7 +39,7 @@ export function useHouse(
   const runtimeRef = useRef<HouseRuntime | null>(null);
   const lenisRef = useRef<Lenis | null>(null);
   const overridingRef = useRef(false);
-  const [ui, setUi] = useState<HouseUi>({ roomIndex: -1, finale: false, ready: false, error: null });
+  const [ui, setUi] = useState<HouseUi>({ roomIndex: -1, finale: false, ready: false, error: null, sun: null });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -84,8 +86,12 @@ export function useHouse(
       root.dataset.ready = 'true';
       setUi((s) => ({ ...s, ready: true }));
       // Run the sun study while the visitor is still on the plan, so the room file opens instantly.
-      const idle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1500));
-      idle(() => { if (!cancelled) void runtime.sunHours(); });
+      // The timeout matters: a busy render loop can leave no idle time at all.
+      const idle = window.requestIdleCallback ?? ((cb: () => void, _opts?: IdleRequestOptions) => setTimeout(cb, 1500));
+      idle(() => {
+        if (cancelled) return;
+        void runtime.sunHours().then((sun) => { if (!cancelled) setUi((s) => ({ ...s, sun })); });
+      }, { timeout: 3000 });
     });
 
     const lenis = reduceMotion ? null : new Lenis({ lerp: 0.085, wheelMultiplier: 0.9 });
@@ -135,7 +141,6 @@ export function useHouse(
     overridingRef.current = hour !== null;
     runtimeRef.current?.setHour(hour);
   }, []);
-  const sunHours = useCallback(() => runtimeRef.current?.sunHours() ?? Promise.resolve(null), []);
 
-  return { ...ui, jumpTo, roomProgress, setHour, sunHours };
+  return { ...ui, jumpTo, roomProgress, setHour };
 }

@@ -132,6 +132,30 @@ h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
 .finale.is-on { opacity: 1; transform: none; pointer-events: auto; }
 .finale h2 { margin: 0 0 14px; font: 500 clamp(32px, 4vw, 46px)/1 var(--display); letter-spacing: -0.015em; }
 .finale p:not(.eyebrow) { margin: 0; font: 400 15px/1.55 var(--sans); color: rgba(243, 236, 224, 0.74); }
+/* Short screens: the room index scrolls inside the card rather than off the top. */
+.finale { max-height: calc(100svh - 96px); overflow-y: auto; }
+.index { margin: 22px 0 0; padding: 0; list-style: none; border-top: 1px solid rgba(243, 236, 224, 0.16); }
+.index button {
+  width: 100%; display: grid; grid-template-columns: 30px 1fr auto; column-gap: 14px; row-gap: 6px; align-items: center;
+  padding: 10px 2px; border: 0; border-bottom: 1px solid rgba(243, 236, 224, 0.16); background: none; text-align: left;
+  transition: background 0.3s var(--ease);
+}
+.index button:hover { background: rgba(243, 236, 224, 0.06); }
+.index button:focus-visible { outline: 2px solid var(--paper); outline-offset: -2px; }
+.index__name { font: 500 17px/1.1 var(--display); }
+.index__name b { margin-right: 10px; font: 600 10px/1 var(--sans); letter-spacing: 0.14em; color: rgba(243, 236, 224, 0.6); }
+.index__meta { font: 400 12px/1 var(--sans); color: rgba(243, 236, 224, 0.74); font-variant-numeric: tabular-nums; }
+.index .strip { grid-column: 2 / 4; }
+.planmark { grid-row: span 2; width: 30px; height: 30px; }
+.planmark rect { fill: none; stroke: rgba(243, 236, 224, 0.4); stroke-width: 1; }
+.planmark rect.is-on { fill: var(--accent); stroke: var(--accent); }
+.strip { display: block; margin-top: 8px; }
+.index .strip { margin-top: 0; }
+.strip svg { display: block; width: 100%; height: 6px; fill: var(--accent); }
+.strip__day { fill: rgba(243, 236, 224, 0.22); }
+.strip__ticks { display: flex; justify-content: space-between; margin-top: 4px; font: 500 9px/1 var(--sans); letter-spacing: 0.08em; color: rgba(243, 236, 224, 0.55); }
+.strip__ticks i { font-style: normal; }
+.index .strip__ticks { display: none; }
 .finale__cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
 .btn { height: 40px; padding: 0 18px; border: 1px solid currentColor; background: none; font: 600 11px/1 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; transition: background 0.3s, color 0.3s; }
 .btn:hover { background: rgba(243, 236, 224, 0.12); }
@@ -173,12 +197,19 @@ h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
   .rail { display: none; }
   .sunbar { bottom: auto; top: 70px; padding: 7px 10px; }
   .sunbar button { display: none; }
-  .file { bottom: clamp(220px, 40vh, 300px); }
   .hint { left: var(--gutter); right: auto; bottom: 28px; }
   .label span { font-size: 11px; }
   .label i { display: none; }
   .label--dim i { display: block; }
   .titleblock { display: none; }
+  .finale { padding: 22px; max-height: calc(100svh - 128px); }
+  /* Phones have no room for the walk panels beside the finale, or for the file above a full caption. */
+  .is-finale .caption, .is-finale .sunbar { opacity: 0; pointer-events: none; }
+  .file { top: 116px; bottom: auto; max-height: calc(100svh - 310px); overflow-y: auto; }
+  .is-file .caption__in > p:not(.caption__no) { display: none; }
+  .finale h2 { font-size: 30px; }
+  .index button { grid-template-columns: 30px 1fr; row-gap: 4px; padding: 9px 2px; }
+  .index .strip { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

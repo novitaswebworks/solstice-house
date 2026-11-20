@@ -26,6 +26,16 @@ export interface FrameInfo {
   labels: Array<{ x: number; y: number }>;
 }
 
+/** First quarter-hour sampled by the sun study; slot i covers SUN_SLOT_START + i / 4 hours. */
+export const SUN_SLOT_START = 6.5;
+
+export interface RoomSun {
+  /** Total hours of direct sun, to one decimal. */
+  hours: number;
+  /** Lit fraction (0-1) of the room in each quarter-hour slot. */
+  slots: number[];
+}
+
 export interface HouseRuntime {
   /** Resolves once the sky, textures and models have all loaded. */
   ready: Promise<void>;
@@ -36,8 +46,8 @@ export interface HouseRuntime {
   roomProgress: number[];
   /** Take over the time of day (hours), or pass null to follow the walk again. */
   setHour(hour: number | null): void;
-  /** Hours of direct sunlight each room receives over the day (waits for every sky). */
-  sunHours(): Promise<number[]>;
+  /** Direct sunlight each room receives over the day (waits for every sky). */
+  sunHours(): Promise<RoomSun[]>;
 }
 
 const smooth = (x: number) => {
@@ -160,7 +170,7 @@ export function createHouseRuntime(
   let disposed = false;
   let lastRoom = -2;
   let hourOverride: number | null = null;
-  let cachedSunHours: number[] | null = null;
+  let cachedSunHours: RoomSun[] | null = null;
 
   function resize() {
     const rect = canvas.getBoundingClientRect();
@@ -297,18 +307,20 @@ export function createHouseRuntime(
         points.push(new THREE.Vector3(r.x0 + 0.5 + ((r.x1 - r.x0 - 1) * i) / 4, 0.9, r.z0 + 0.5 + ((r.z1 - r.z0 - 1) * j) / 4));
       }
       let total = 0;
-      for (let h = 6.5; h < 19.75; h += 0.25) {
+      const slots: number[] = [];
+      for (let h = SUN_SLOT_START; h < 19.75; h += 0.25) {
         const st = skyLoaded ? sky.update(h, sunAzimuth(h)) : null;
-        if (!st || st.sunDir.y < 0.03) continue;
+        if (!st || st.sunDir.y < 0.03) { slots.push(0); continue; }
         dir.copy(st.sunDir);
         let lit = 0;
         for (const p of points) {
           ray.set(p, dir);
           if (ray.intersectObjects(blockers, false).length === 0) lit++;
         }
+        slots.push(lit / points.length);
         total += (lit / points.length) * 0.25;
       }
-      return Math.round(total * 10) / 10;
+      return { hours: Math.round(total * 10) / 10, slots };
     });
     house.rising.scale.y = savedScale;
     house.roof.position.y = savedRoof;

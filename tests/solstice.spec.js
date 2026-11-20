@@ -80,6 +80,17 @@ test.describe('Solstice House', () => {
     }
   });
 
+  test('the finale lists every room with its sun, and each row walks back in', async ({ page }) => {
+    await open(page);
+    await scrollTo(page, 1);
+    await expect(page.locator('.finale')).toHaveClass(/is-on/, { timeout: 8000 });
+    const rows = page.locator('.index button');
+    await expect(rows).toHaveCount(6);
+    await expect(rows.nth(3)).toContainText(/\d+\.\d h sun/, { timeout: 15000 });
+    await rows.nth(3).click();
+    await expect(page.locator('.caption h2')).toHaveText('Kitchen & Dining', { timeout: 10000 });
+  });
+
   test('opens at a room from a deep link', async ({ page }) => {
     await page.goto('/#kitchen', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.app')).toHaveAttribute('data-ready', 'true', { timeout: 30000 });
@@ -94,6 +105,7 @@ test.describe('Solstice House', () => {
     await page.getByRole('button', { name: /Open room file/ }).click();
     await expect(page.locator('.file')).toContainText('88 m²');
     await expect(page.locator('.file')).toContainText(/\d+\.\d hours a day/, { timeout: 15000 });
+    await expect(page.locator('.file .strip svg rect:not(.strip__day)').first()).toBeAttached();
   });
 
   test('the sun slider moves the clock', async ({ page }) => {
