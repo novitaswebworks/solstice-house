@@ -33,5 +33,6 @@ for (let i = 0; i < FRAMES; i++) {
 await browser.close();
 
 execFileSync('ffmpeg', ['-y', '-framerate', String(FPS), '-i', `${dir}/f_%04d.jpg`, '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '29', '-preset', 'slow', '-movflags', '+faststart', 'public/media/walkthrough.mp4'], { stdio: 'inherit' });
-copyFileSync(`${dir}/f_${String(Math.round(FRAMES * 0.5)).padStart(4, '0')}.jpg`, 'public/media/still.jpg');
+// 55% is well inside the living room; at 50% the scroll-linked caption is still wiping in.
+copyFileSync(`${dir}/f_${String(Math.round(FRAMES * 0.55)).padStart(4, '0')}.jpg`, 'public/media/still.jpg');
 console.log('done');

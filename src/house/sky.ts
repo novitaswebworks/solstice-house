@@ -15,8 +15,9 @@ const ALL_KEYS = [
   { hour: 19.4, file: 'kiara_8_sunset' },
 ];
 
-// Phones get three skies instead of six.
+// Phones get three skies instead of six, at half size (scripts/shrink-skies.mjs).
 const KEYS = coarse ? ALL_KEYS.filter((_, i) => i === 0 || i === 2 || i === 5) : ALL_KEYS;
+const SIZE = coarse ? '512' : '1k';
 
 interface Key {
   hour: number;
@@ -104,7 +105,7 @@ export class DaySky {
   private async load(keys: typeof KEYS, loadingManager: THREE.LoadingManager) {
     const loader = new HDRLoader(loadingManager);
     const pmrem = new THREE.PMREMGenerator(this.renderer);
-    const textures = await Promise.all(keys.map((k) => loader.loadAsync(assetUrl(`sky/${k.file}_1k.hdr`))));
+    const textures = await Promise.all(keys.map((k) => loader.loadAsync(assetUrl(`sky/${k.file}_${SIZE}.hdr`))));
     textures.forEach((texture, i) => {
       texture.mapping = THREE.EquirectangularReflectionMapping;
       texture.wrapS = THREE.RepeatWrapping;

@@ -8,6 +8,7 @@ import { DrawingPass } from './drawing';
 import { buildAnnotations } from './annotations';
 import { DaySky } from './sky';
 import { whenIdle } from './assets';
+import bakedSun from './sun-study.json';
 
 /** Scroll progress where each stage of the experience begins and ends. */
 export const STAGES = {
@@ -25,6 +26,10 @@ export interface FrameInfo {
   planOpacity: number;
   labels: Array<{ x: number; y: number }>;
 }
+
+// `npm run bake:sun` measures the study on desktop (all six skies) and stores it, so every
+// device shows the same numbers and nobody pays for the raycasts. `?bake-sun` forces a live run.
+const BAKE = typeof location !== 'undefined' && new URLSearchParams(location.search).has('bake-sun');
 
 /** First quarter-hour sampled by the sun study; slot i covers SUN_SLOT_START + i / 4 hours. */
 export const SUN_SLOT_START = 6.5;
@@ -320,7 +325,7 @@ export function createHouseRuntime(
         slots.push(lit / points.length);
         total += (lit / points.length) * 0.25;
       }
-      return { hours: Math.round(total * 10) / 10, slots };
+      return { hours: Math.round(total * 10) / 10, slots: slots.map((f) => Math.round(f * 100) / 100) };
     });
     house.rising.scale.y = savedScale;
     house.roof.position.y = savedRoof;
@@ -355,7 +360,12 @@ export function createHouseRuntime(
       hourOverride = hour;
     },
     sunHours() {
-      return sky.complete.then(studySun, studySun);
+      const baked = bakedSun as RoomSun[];
+      if (!BAKE && baked.length === rooms.length) return Promise.resolve(baked);
+      return sky.complete.then(studySun, studySun).then((result) => {
+        if (BAKE) (window as unknown as { __sunStudy?: RoomSun[] }).__sunStudy = result;
+        return result;
+      });
     },
     dispose() {
       disposed = true;

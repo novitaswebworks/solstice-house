@@ -51,6 +51,15 @@ export function useHouse(
     const onFrame = (info: FrameInfo) => {
       root.style.setProperty('--plan', info.planOpacity.toFixed(3));
       root.style.setProperty('--progress', info.progress.toFixed(4));
+      // Scroll-linked caption: --room-in ramps over the doorway, --room-t runs 0..1 across the room.
+      const rp = runtimeRef.current?.roomProgress;
+      if (rp && info.roomIndex >= 0) {
+        const start = rp[info.roomIndex] - 0.012;
+        const end = rp[info.roomIndex + 1] ?? 1;
+        const clamp = (x: number) => Math.min(1, Math.max(0, x));
+        root.style.setProperty('--room-in', clamp((info.progress - start) / 0.012).toFixed(3));
+        root.style.setProperty('--room-t', clamp((info.progress - start) / (end - start)).toFixed(3));
+      }
       labelRefs.current?.forEach((el, i) => {
         const l = info.labels[i];
         if (el && l) el.style.transform = `translate(${l.x.toFixed(1)}px, ${l.y.toFixed(1)}px) translate(-50%, -50%)`;
@@ -85,13 +94,8 @@ export function useHouse(
       if (cancelled) return;
       root.dataset.ready = 'true';
       setUi((s) => ({ ...s, ready: true }));
-      // Run the sun study while the visitor is still on the plan, so the room file opens instantly.
-      // The timeout matters: a busy render loop can leave no idle time at all.
-      const idle = window.requestIdleCallback ?? ((cb: () => void, _opts?: IdleRequestOptions) => setTimeout(cb, 1500));
-      idle(() => {
-        if (cancelled) return;
-        void runtime.sunHours().then((sun) => { if (!cancelled) setUi((s) => ({ ...s, sun })); });
-      }, { timeout: 3000 });
+      // Baked data resolves at once; a live study (no bake, or ?bake-sun) waits for every sky.
+      void runtime.sunHours().then((sun) => { if (!cancelled) setUi((s) => ({ ...s, sun })); });
     });
 
     const lenis = reduceMotion ? null : new Lenis({ lerp: 0.085, wheelMultiplier: 0.9 });

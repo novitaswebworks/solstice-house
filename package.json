@@ -8,7 +8,8 @@
     "typecheck": "tsc -b --pretty false",
     "test": "playwright test",
     "test:list": "playwright test --list",
-    "record": "node scripts/record-walkthrough.mjs"
+    "record": "node scripts/record-walkthrough.mjs",
+    "bake:sun": "node scripts/bake-sun-study.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",

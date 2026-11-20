@@ -72,9 +72,12 @@ h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
   opacity: 0; transform: translateY(12px); transition: opacity 0.5s var(--ease), transform 0.5s var(--ease); pointer-events: none;
 }
 .caption.is-on { opacity: 1; transform: none; }
-.caption__in { animation: rise 0.7s var(--ease) both; }
+.caption__in {
+  opacity: var(--room-in, 1);
+  transform: translateY(calc((1 - var(--room-in, 1)) * 18px + (0.5 - var(--room-t, 0.5)) * 20px));
+}
 .caption__no { margin: 0 0 12px; font: 600 10.5px/1.3 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-text); }
-.caption h2 { margin: 0 0 10px; font: 500 clamp(28px, 3vw, 40px)/1 var(--display); letter-spacing: -0.015em; animation: wipe 0.9s var(--ease) both; }
+.caption h2 { margin: 0 0 10px; font: 500 clamp(28px, 3vw, 40px)/1 var(--display); letter-spacing: -0.015em; clip-path: inset(0 calc((1 - var(--room-in, 1)) * 100%) 0 0); }
 .progress { position: fixed; z-index: 6; inset: 0 0 auto 0; height: 2px; background: var(--accent); transform-origin: left; transform: scaleX(var(--progress)); pointer-events: none; }
 .caption__num { display: inline-block; margin-right: 8px; font: 500 22px/1 var(--display); letter-spacing: -0.01em; vertical-align: -3px; }
 .caption__foot { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
@@ -114,9 +117,10 @@ h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
 .rail { position: fixed; z-index: 5; right: var(--gutter); top: 50%; transform: translateY(-50%); display: grid; gap: 4px; justify-items: end; }
 .rail button { display: flex; align-items: center; gap: 12px; padding: 7px 0; background: none; border: 0; }
 .rail span { font: 600 10px/1 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; opacity: 0; transform: translateX(6px); transition: opacity 0.3s var(--ease), transform 0.3s var(--ease); color: var(--ink); background: var(--paper-glass); padding: 5px 8px; }
-.rail i { width: 18px; height: 2px; background: var(--ink); opacity: 0.35; transition: width 0.4s var(--ease), opacity 0.3s, background 0.3s; }
+/* Scale, not width: a transform skips layout on every frame of the transition. */
+.rail i { width: 34px; height: 2px; background: var(--ink); opacity: 0.35; transform: scaleX(0.53); transform-origin: right; transition: transform 0.4s var(--ease), opacity 0.3s, background 0.3s; }
 .rail button:hover span, .rail button:focus-visible span, .rail button.is-active span { opacity: 1; transform: none; }
-.rail button.is-active i { width: 34px; opacity: 1; background: var(--accent); }
+.rail button.is-active i { transform: none; opacity: 1; background: var(--accent); }
 .rail button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .hint { position: fixed; z-index: 4; right: var(--gutter); bottom: clamp(28px, 7vh, 64px); display: flex; align-items: center; gap: 14px; opacity: 0; transition: opacity 0.6s var(--ease); pointer-events: none; }
@@ -184,7 +188,6 @@ h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
 .noscript-fallback { padding: 48px var(--gutter); max-width: 560px; }
 .noscript-fallback h2 { font: 500 40px/1 var(--display); margin: 0 0 12px; }
 
-@keyframes wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes scan { 0% { transform: scaleX(0); } 60%, 100% { transform: scaleX(1); opacity: 0.15; } }
 
@@ -214,4 +217,5 @@ h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .caption__in { transform: none; }
 }
