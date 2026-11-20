@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { createTrees } from './trees';
+import { hangPrint } from './prints';
 import { plain, floorMaterial, fabricMaterial } from './materials';
 import { placeModel, pbrMaterial, type ModelFit } from './assets';
 
@@ -77,7 +78,7 @@ export function buildFurniture(g: THREE.Group): Promise<void> {
   for (let i = 0; i < 5; i++) box(11, 0, 22.2 + i * 1.1, 1.4, 0.05, 0.7, stone(1.4, 0.7));
 
   // Hall: runner, and an oak coat rail with four brass hooks on the west wall above the bench.
-  rug(11, 13, 1.4, 3.2, C.terracotta, '#7a3520');
+  rug(11, 13, 1.4, 3.2, '#9e5a3f', '#5f3626'); // muted clay: true terracotta read as bright orange on the floor
   box(8.135, 1.6, 12.9, 0.03, 0.1, 1.1, floorMaterial('oak', 1.1, 0.1));
   for (const hz of [12.5, 12.77, 13.03, 13.3]) {
     const hook = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.012, 0.09, 10), plain('#b08d57', 0.35, 0.9)));
@@ -260,7 +261,9 @@ export function buildFurniture(g: THREE.Group): Promise<void> {
     ['shrub_02', { x: 25.5, z: 9, ry: 1.3, height: 1.6 }],
     ['shrub_02', { x: 25.6, z: -2, ry: 3.3, height: 1.5 }],
   ];
-  const load = ([id, fit]: [string, ModelFit]) => placeModel(g, id, fit).catch((e) => console.warn(`Model ${id} failed`, e));
+  const load = ([id, fit]: [string, ModelFit]) => placeModel(g, id, fit)
+    .then((obj) => { if (id === 'hanging_picture_frame_01') hangPrint(obj); })
+    .catch((e) => console.warn(`Model ${id} failed`, e));
   // Only the first screens block the loader; the rest arrive while you scroll.
   const first = Promise.all(jobs.filter(([, f]) => !f.lazy).map(load)).then(() => undefined);
   void Promise.all(jobs.filter(([, f]) => f.lazy).map(load));
