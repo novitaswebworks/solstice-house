@@ -114,8 +114,30 @@ export function useHouse(
     };
     raf = requestAnimationFrame(tick);
 
-    const onResize = () => runtime.resize();
-    window.addEventListener('resize', onResize);
+    // Watch the canvas itself, not the window: Safari can lay the canvas out after the first measure
+    // (leaving a 300x150-shaped buffer stretched over the screen), and iOS resizes it with the address bar.
+    // On tall screens the plan fits into the band the page leaves free. Each fixed overlay sitting in the top half
+    // reserves space above, each in the bottom half space below: phones put the intro on top, portrait tablets at
+    // the bottom with the title block on top. The intro is observed too, since it reflows when web fonts arrive.
+    const intro = root.querySelector<HTMLElement>('.intro');
+    const overlays = [intro, root.querySelector<HTMLElement>('.titleblock'), root.querySelector<HTMLElement>('.hint')];
+    const sizer = new ResizeObserver(() => {
+      const vh = window.innerHeight;
+      let top = 0;
+      let bottom = 0;
+      for (const el of overlays) {
+        if (!el || !el.offsetHeight) continue; // hidden (display: none) on this layout
+        // offsetTop/Height ignore the intro's rise-animation transform; all three are position: fixed.
+        const t = el.offsetTop;
+        const b = t + el.offsetHeight;
+        if (t + b < vh) top = Math.max(top, b + 16);
+        else bottom = Math.max(bottom, vh - t + 8);
+      }
+      runtime.setPlanInset(top, bottom);
+      runtime.resize();
+    });
+    sizer.observe(canvas);
+    if (intro) sizer.observe(intro);
     const onLost = (event: Event) => {
       event.preventDefault();
       setUi((s) => ({ ...s, error: 'The 3D view ran out of memory on this device. Here is the walkthrough instead.' }));
@@ -127,7 +149,7 @@ export function useHouse(
       stopProgress();
       delete root.dataset.ready;
       cancelAnimationFrame(raf);
-      window.removeEventListener('resize', onResize);
+      sizer.disconnect();
       canvas.removeEventListener('webglcontextlost', onLost);
       lenis?.destroy();
       lenisRef.current = null;

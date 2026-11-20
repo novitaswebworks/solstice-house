@@ -50,6 +50,8 @@ export interface HouseRuntime {
   skies: Promise<void>;
   setProgress(p: number): void;
   resize(): void;
+  /** Screen space (px) the page keeps clear above and below the plan on tall screens: the intro text and the scroll hint. */
+  setPlanInset(top: number, bottom: number): void;
   dispose(): void;
   /** Scroll progress at which each room is first reached. */
   roomProgress: number[];
@@ -179,6 +181,7 @@ export function createHouseRuntime(
   let disposed = false;
   let lastRoom = -2;
   let hourOverride: number | null = null;
+  let inset = { top: 0, bottom: 0 };
   let cachedSunHours: RoomSun[] | null = null;
 
   function resize() {
@@ -196,10 +199,19 @@ export function createHouseRuntime(
     const topH = Math.max(needV, needH) * (wide ? 1.22 : 1.12);
     const visibleW = 2 * topH * Math.tan(vHalf) * camera.aspect;
     const shiftX = HOUSE_CENTER.x - (wide ? 0.16 * visibleW : 0);
-    // On tall phones, slide it down instead, under the intro text.
-    const tall = camera.aspect < 0.8;
-    const shiftZ = HOUSE_CENTER.z - (tall ? 0.135 * 2 * topH * Math.tan(vHalf) : 0);
-    topPos.set(shiftX, topH, shiftZ);
+    let height3d = topH;
+    let shiftZ = HOUSE_CENTER.z;
+    // On tall phones, fit the plan (from the 20 m dimension label at z -7.6 to the gate at z 21.4) into the
+    // band the page leaves free between the intro text and the scroll hint, measured by the UI.
+    if (camera.aspect < 0.8 && inset.top > 0) {
+      const free = Math.max(0.35, (height - inset.top - inset.bottom) / height);
+      const span = 21.4 - -7.6;
+      height3d = Math.max(span / 2 / Math.tan(vHalf) / free, needH * 1.06);
+      const visibleH = 2 * height3d * Math.tan(vHalf);
+      // Screen-up is north (-z), so moving the camera north moves the plan down the screen.
+      shiftZ = (21.4 + -7.6) / 2 - ((inset.top - inset.bottom) / 2 / height) * visibleH;
+    }
+    topPos.set(shiftX, height3d, shiftZ);
     topTarget.set(shiftX, 0, shiftZ);
     camera.updateProjectionMatrix();
   }
@@ -366,6 +378,11 @@ export function createHouseRuntime(
       progress = clamp01(p);
     },
     resize,
+    setPlanInset(top, bottom) {
+      if (top === inset.top && bottom === inset.bottom) return;
+      inset = { top, bottom };
+      resize();
+    },
     roomProgress,
     setHour(hour) {
       hourOverride = hour;

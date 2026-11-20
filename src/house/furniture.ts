@@ -47,6 +47,20 @@ export function buildFurniture(g: THREE.Group): Promise<void> {
     return m;
   };
 
+  /** Upholstery and bedding: corners up to `r` round, optionally tipped about z (negative lifts the west end). */
+  const soft = (cx: number, baseY: number, cz: number, w: number, h: number, d: number, material: THREE.Material, r = 0.06, tilt = 0) => {
+    const m = shadow(new THREE.Mesh(new RoundedBoxGeometry(w, h, d, 3, Math.min(r, Math.min(w, h, d) / 2 - 0.001)), material));
+    m.position.set(cx, baseY + h / 2, cz);
+    m.rotation.z = tilt;
+    g.add(m);
+    return m;
+  };
+  /** A woven rug: a darker bound border with the field set a millimetre proud of it. */
+  const rug = (cx: number, cz: number, w: number, d: number, field: string, border: string) => {
+    box(cx, 0.004, cz, w, 0.012, d, fabricMaterial(w, d, border));
+    box(cx, 0.0045, cz, w - 0.18, 0.013, d - 0.18, fabricMaterial(w - 0.18, d - 0.18, field));
+  };
+
   // ── Built-ins and soft furnishings (drawn in code) ──
   // Gate court: stepping stones, a bench and an olive tree
   // Stone pieces share the kitchen's photographic stone tile, so nothing new loads.
@@ -63,13 +77,21 @@ export function buildFurniture(g: THREE.Group): Promise<void> {
   for (let i = 0; i < 5; i++) box(11, 0, 22.2 + i * 1.1, 1.4, 0.05, 0.7, stone(1.4, 0.7));
 
   // Hall runner
-  box(11, 0.005, 13, 1.4, 0.02, 3.2, fabricMaterial(1.4, 3.2, C.terracotta));
+  rug(11, 13, 1.4, 3.2, C.terracotta, '#7a3520');
 
-  // Living room: rug and floor lamp
-  box(9, 0.005, 5.9, 4, 0.02, 3, fabricMaterial(4, 3, '#f2dcb8'));
-  cyl(4.6, 0, 8.6, 0.03, 1.6, C.black, 0.4);
-  const shade = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.3, 0.3, 24), new THREE.MeshStandardMaterial({ color: '#f3e3c3', emissive: '#ffcf8a', emissiveIntensity: 0.35, roughness: 0.9 }));
-  shade.position.set(4.6, 1.7, 8.6);
+  // Living room: rug and a floor lamp (weighted disc, slim brass stem, open linen drum that glows from inside)
+  rug(9, 5.9, 4, 3, '#efe3cf', '#b9a58a');
+  const brass = plain('#b08d57', 0.35, 0.9);
+  cyl(4.6, 0, 8.6, 0.16, 0.025, C.black, 0.4);
+  const stem = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 1.5, 12), brass));
+  stem.position.set(4.6, 0.775, 8.6);
+  g.add(stem);
+  const shadeMat = fabricMaterial(1.4, 0.32, '#f3e8d4');
+  shadeMat.side = THREE.DoubleSide;
+  shadeMat.emissive.set('#ffcf8a');
+  shadeMat.emissiveIntensity = 0.3;
+  const shade = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.26, 0.32, 40, 1, true), shadeMat);
+  shade.position.set(4.6, 1.66, 8.6);
   g.add(shade);
 
   // Kitchen: a dark carcass behind separate door fronts, so 4 mm shadow gaps read as joinery.
@@ -121,26 +143,44 @@ export function buildFurniture(g: THREE.Group): Promise<void> {
   box(20.8, 0.7, 5, 2.4, 0.06, 1.2, floorMaterial('oak', 2.4, 1.2), 0.6);
   for (const [lx, lz] of [[19.8, 4.5], [21.8, 4.5], [19.8, 5.5], [21.8, 5.5]] as const) cyl(lx, 0, lz, 0.04, 0.7, C.black, 0.4);
 
-  // Terrace: loungers and a parasol
+  // Terrace: two timber loungers (legs, frame, flat cushion, raised back) and a ribbed parasol
+  const teak = floorMaterial('oak', 0.72, 1.95);
+  const cushion = fabricMaterial(0.66, 1.4, C.linen);
   for (const lx of [19.4, 21.2]) {
-    box(lx, 0, 1.4, 0.75, 0.3, 1.9, fabricMaterial(0.75, 1.9, C.linen));
-    box(lx, 0.3, 0.7, 0.75, 0.35, 0.3, fabricMaterial(0.75, 0.3, C.linen));
+    for (const [dx, dz] of [[-0.31, 0.55], [0.31, 0.55], [-0.31, 2.25], [0.31, 2.25]] as const) box(lx + dx, 0, 1.4 + dz - 1.0, 0.05, 0.24, 0.05, teak);
+    box(lx, 0.22, 1.725, 0.72, 0.06, 1.3, teak);
+    soft(lx, 0.28, 1.72, 0.66, 0.08, 1.26, cushion, 0.035);
+    // The back rises towards the pool (north): a timber board and cushion tipped about x.
+    for (const [y, h, mat2] of [[0.42, 0.05, teak], [0.47, 0.08, cushion]] as const) {
+      const back = soft(lx, y, 0.78, 0.66, h, 0.72, mat2, 0.03);
+      back.rotation.x = 0.7;
+    }
   }
-  cyl(22.2, 0, 0.3, 0.04, 2.4, C.black, 0.5);
-  const parasol = shadow(new THREE.Mesh(new THREE.ConeGeometry(1.5, 0.45, 32), mat(C.terracotta, 0.9)));
-  parasol.position.set(22.2, 2.55, 0.3);
-  g.add(parasol);
+  box(22.2, 0, 0.3, 0.5, 0.08, 0.5, floorMaterial('stone', 0.5, 0.5));
+  const pole = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 2.75, 12), teak));
+  pole.position.set(22.2, 1.42, 0.3);
+  g.add(pole);
+  const canvas = fabricMaterial(3, 3, C.terracotta);
+  canvas.side = THREE.DoubleSide;
+  const canopy = shadow(new THREE.Mesh(new THREE.ConeGeometry(1.5, 0.42, 8, 1, true), canvas));
+  canopy.position.set(22.2, 2.55, 0.3);
+  g.add(canopy);
+  // Eight ribs from the crown out to the canopy's corners, just under the fabric.
+  const crown = new THREE.Vector3(22.2, 2.68, 0.3);
+  for (let k = 0; k < 8; k++) {
+    const a = (k / 8) * Math.PI * 2;
+    const tip = new THREE.Vector3(22.2 + Math.sin(a) * 1.46, 2.33, 0.3 + Math.cos(a) * 1.46);
+    const rib = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, crown.distanceTo(tip), 6), teak));
+    rib.position.copy(crown).add(tip).multiplyScalar(0.5);
+    rib.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tip.clone().sub(crown).normalize());
+    g.add(rib);
+  }
+  const finial = shadow(new THREE.Mesh(new THREE.SphereGeometry(0.035, 12, 8), teak));
+  finial.position.set(22.2, 2.79, 0.3);
+  g.add(finial);
 
   // Bedroom: rug, then a bed of soft, well-rounded pieces on a walnut frame. Head against the west wall.
-  box(6.2, 0.005, -1, 3.4, 0.02, 2.8, fabricMaterial(3.4, 2.8, '#dcb98f'));
-  /** Upholstery and bedding: corners up to `r` round, optionally tipped about z (negative lifts the west end). */
-  const soft = (cx: number, baseY: number, cz: number, w: number, h: number, d: number, material: THREE.Material, r = 0.06, tilt = 0) => {
-    const m = shadow(new THREE.Mesh(new RoundedBoxGeometry(w, h, d, 3, Math.min(r, Math.min(w, h, d) / 2 - 0.001)), material));
-    m.position.set(cx, baseY + h / 2, cz);
-    m.rotation.z = tilt;
-    g.add(m);
-    return m;
-  };
+  rug(6.2, -1, 3.4, 2.8, '#dcb98f', '#8a6a48');
   const duvet = fabricMaterial(1.4, 2.0, '#ece5d9');
   box(4.6, 0.02, -1, 2.1, 0.06, 1.8, '#1b1714', 0.8); // recessed plinth, so the bed seems to float
   box(4.6, 0.08, -1, 2.3, 0.22, 2.0, floorMaterial('oakDark', 2.3, 2.0));
@@ -160,7 +200,8 @@ export function buildFurniture(g: THREE.Group): Promise<void> {
     ['mid_century_lounge_chair', { x: 6.7, z: 6.4, ry: Math.PI / 2 + 0.25, height: 0.85 }],
     ['mid_century_lounge_chair', { x: 10.6, z: 6.9, ry: -Math.PI / 2 - 0.25, height: 0.85 }],
     ['modern_wooden_cabinet', { x: 6.2, z: 10.5, ry: Math.PI, width: 2.4 }],
-    ['wooden_display_shelves_01', { x: 3.4, z: 9.2, ry: -Math.PI / 2, height: 1.6 }],
+    // This scan's long side runs along z, so ry 0 stands it flat against the west wall (it is open-backed and symmetric).
+    ['wooden_display_shelves_01', { x: 3.4, z: 9.2, ry: 0, height: 1.6 }],
     ['side_table_tall_01', { x: 7.4, z: 3.75, ry: 0, height: 0.6 }],
     ['potted_plant_02', { x: 13.3, z: 9.8, height: 1.1 }],
     ['fern_02', { x: 3.9, z: 3.9, height: 0.7 }],

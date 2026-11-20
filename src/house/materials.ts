@@ -38,8 +38,20 @@ export function plasterMaterial() {
 }
 
 export function fabricMaterial(widthM: number, depthM: number, color = '#ffffff') {
-  const m = pbrMaterial('rough_linen', widthM, depthM, 0.8, { metalness: 1 });
+  // Fabric is never metallic. Letting the texture's metal channel through made linen mirror the sky and turn blue.
+  const m = pbrMaterial('rough_linen', widthM, depthM, 0.8, { metalness: 0 });
+  m.metalnessMap = null;
   m.color.set(color);
+  // The linen scan is dyed light blue (average sRGB 144,170,204), which tinted every fabric cool. Keep only its
+  // weave (luminance), normalised by that average (~0.38 linear), so each fabric shows its own colour.
+  m.onBeforeCompile = (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `
+      #ifdef USE_MAP
+        diffuseColor.rgb *= vec3(dot(texture2D(map, vMapUv).rgb, vec3(0.2126, 0.7152, 0.0722)) / 0.38);
+      #endif
+    `);
+  };
+  m.customProgramCacheKey = () => 'fabric-weave-only';
   return m;
 }
 
