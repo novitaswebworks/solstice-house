@@ -25,6 +25,8 @@ export interface FrameInfo {
   hour: number;
   planOpacity: number;
   labels: Array<{ x: number; y: number }>;
+  /** Screen pixels per metre on the ground plane, for the plan's scale bar. */
+  metre: number;
 }
 
 // `npm run bake:sun` measures the study on desktop (all six skies) and stores it, so every
@@ -279,6 +281,12 @@ export function createHouseRuntime(
       return { x: (labelVec.x * 0.5 + 0.5) * width, y: (-labelVec.y * 0.5 + 0.5) * height };
     });
 
+    // Pixels per metre: project two ground points a metre apart (exact while the camera looks straight down).
+    labelVec.set(HOUSE_CENTER.x, 0, HOUSE_CENTER.z).project(camera);
+    const sx = labelVec.x;
+    labelVec.set(HOUSE_CENTER.x + 1, 0, HOUSE_CENTER.z).project(camera);
+    const metre = Math.abs(labelVec.x - sx) * 0.5 * width;
+
     let roomIndex = -1;
     if (p >= STAGES.walkStart) {
       // Probe slightly ahead along the route so the caption changes as you reach a doorway.
@@ -288,7 +296,7 @@ export function createHouseRuntime(
     }
     lastRoom = roomIndex;
 
-    onFrame({ progress: p, roomIndex, hour, planOpacity, labels });
+    onFrame({ progress: p, roomIndex, hour, planOpacity, labels, metre });
   }
 
 

@@ -53,6 +53,7 @@ export function useHouse(
     const onFrame = (info: FrameInfo) => {
       root.style.setProperty('--plan', info.planOpacity.toFixed(3));
       root.style.setProperty('--progress', info.progress.toFixed(4));
+      if (info.planOpacity > 0) root.style.setProperty('--metre', `${info.metre.toFixed(2)}px`);
       // Scroll-linked caption: --room-in ramps over the doorway, --room-t runs 0..1 across the room.
       const rp = runtimeRef.current?.roomProgress;
       if (rp && info.roomIndex >= 0) {

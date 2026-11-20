@@ -60,7 +60,27 @@ h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
   position: fixed; z-index: 4; left: var(--gutter); top: 76px; display: flex; gap: 14px; align-items: flex-start; padding: 12px 14px;
   border: 1px solid var(--ink); background: var(--paper-glass); opacity: var(--plan); pointer-events: none;
 }
+.titleblock { display: grid; grid-template-columns: auto auto; }
 .titleblock svg { width: 34px; height: 34px; color: var(--ink); }
+/* Scale bar sized from the live camera (--metre is screen px per metre), so it is true at any window size. */
+.scalebar { grid-column: 1 / -1; padding-top: 2px; }
+.titleblock__download {
+  grid-column: 1 / -1; justify-self: start; padding: 0; border: 0; background: none; pointer-events: auto;
+  font: 600 10px/1 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-text); text-decoration: underline; text-underline-offset: 4px;
+}
+.titleblock__download:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* Once the plan has faded, the link must not be clickable or focusable over the walk. */
+.app:not([data-room="-1"]) .titleblock { visibility: hidden; }
+.scalebar > span:first-child { display: flex; height: 5px; border: 1px solid var(--ink); width: max-content; }
+.scalebar i { display: block; width: var(--metre, 20px); }
+.scalebar i:nth-child(1) { background: var(--ink); }
+.scalebar i:nth-child(3) { width: calc(3 * var(--metre, 20px)); background: var(--ink); }
+.scalebar__nums { position: relative; display: block; height: 12px; margin-top: 3px; font: 500 9px/1 var(--sans); color: var(--ink-soft); }
+.scalebar__nums b { position: absolute; top: 0; font-weight: 500; transform: translateX(-50%); }
+.scalebar__nums b:nth-child(2) { left: var(--metre, 20px); }
+.scalebar__nums b:nth-child(3) { left: calc(2 * var(--metre, 20px)); }
+.scalebar__nums b:nth-child(4) { left: calc(5 * var(--metre, 20px)); transform: translateX(-30%); white-space: nowrap; }
+.scalebar__nums b:nth-child(1) { left: 0; }
 .titleblock dl { margin: 0; display: grid; gap: 5px; }
 .titleblock dl div { display: grid; grid-template-columns: 56px auto; gap: 8px; }
 .titleblock dt { font: 600 9px/1.4 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }

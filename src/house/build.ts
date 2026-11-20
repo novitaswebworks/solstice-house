@@ -39,7 +39,7 @@ function addWall(group: THREE.Group, caps: THREE.Group, wall: Wall, material: TH
   const a1 = Math.max(alongX ? wall.x1 : wall.z1, alongX ? wall.x2 : wall.z2);
   const fixed = alongX ? wall.z1 : wall.x1;
 
-  const piece = (from: number, to: number, y0: number, y1: number) => {
+  const piece = (from: number, to: number, y0: number, y1: number, cap = true) => {
     if (to - from < 0.001 || y1 - y0 < 0.001) return;
     const len = to - from;
     const geo = new THREE.BoxGeometry(alongX ? len : WALL_T, y1 - y0, alongX ? WALL_T : len);
@@ -54,8 +54,9 @@ function addWall(group: THREE.Group, caps: THREE.Group, wall: Wall, material: TH
       skirt.position.set(mesh.position.x, 0.055, mesh.position.z);
       group.add(skirt);
     }
-    // A black cap on every wall top: the poche of the plan sheet.
-    if (y1 === wall.h) {
+    // A black cap on every wall top: the poche of the plan sheet. Not over openings,
+    // so doors and windows read as gaps there (annotations.ts draws their symbols).
+    if (cap && y1 === wall.h) {
       const cap = new THREE.Mesh(new THREE.BoxGeometry(alongX ? len : WALL_T, 0.03, alongX ? WALL_T : len), capMaterial);
       cap.position.set(mesh.position.x, y1 + 0.015, mesh.position.z);
       caps.add(cap);
@@ -78,7 +79,7 @@ function addWall(group: THREE.Group, caps: THREE.Group, wall: Wall, material: TH
     const hi = o.at + o.w / 2;
     piece(cursor, lo, 0, wall.h);
     if (o.sill) piece(lo, hi, 0, o.sill);
-    piece(lo, hi, o.h, wall.h);
+    piece(lo, hi, o.h, wall.h, false);
     if (o.glass) {
       const sill = o.sill ?? 0;
       const pane = new THREE.Mesh(new THREE.PlaneGeometry(o.w, o.h - sill), glass);

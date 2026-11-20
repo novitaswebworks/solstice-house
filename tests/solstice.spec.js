@@ -91,6 +91,34 @@ test.describe('Solstice House', () => {
     await expect(page.locator('.caption h2')).toHaveText('Kitchen & Dining', { timeout: 10000 });
   });
 
+  test('downloads a 1:100 A3 plan sheet built from the house data', async ({ page }) => {
+    await open(page);
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('button', { name: /Download plan · 1:100/ }).click(),
+    ]);
+    expect(download.suggestedFilename()).toBe('solstice-house-plan-1-100-A3.svg');
+    const svg = require('fs').readFileSync(await download.path(), 'utf8');
+    // A3 in millimetres, so printing at 100% keeps 1 m = 10 mm.
+    expect(svg).toContain('width="297mm" height="420mm" viewBox="0 0 297 420"');
+    for (const name of ['Gate Court', 'Hall', 'Living Room', 'Kitchen &amp; Dining', 'Sun Terrace', 'Bedroom']) expect(svg).toContain(name);
+    expect(svg).toContain('width="50" height="2"'); // the 5 m scale bar is 50 mm
+    expect(svg).toMatch(/\d+\.\d h sun/);
+    // Well-formed XML: the browser's own parser must accept it.
+    const ok = await page.evaluate((text) => !new DOMParser().parseFromString(text, 'image/svg+xml').querySelector('parsererror'), svg);
+    expect(ok).toBe(true);
+  });
+
+  test('the plan shows room areas and a scale bar that matches the drawing', async ({ page }) => {
+    await open(page);
+    await expect(page.locator('.label').filter({ hasText: 'Living Room' })).toContainText('88 m²');
+    // 5 m on the scale bar should span a quarter of the 20 m dimension line.
+    const bar = await page.locator('.scalebar > span').first().boundingBox();
+    const metre = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.app')).getPropertyValue('--metre')));
+    expect(Math.abs(bar.width - 5 * metre)).toBeLessThan(4);
+    expect(metre).toBeGreaterThan(5);
+  });
+
   test('opens at a room from a deep link', async ({ page }) => {
     await page.goto('/#kitchen', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.app')).toHaveAttribute('data-ready', 'true', { timeout: 30000 });

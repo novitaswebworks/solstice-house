@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { rooms, dimensions, roomFacts, sunMarks } from './house/layout';
 import { useHouse } from './ui/useHouse';
 import { SUN_SLOT_START } from './house/runtime';
+import { planSheetSvg } from './house/planSheet';
 
 const SunMark = () => (
   <svg className="sun-mark" viewBox="0 0 24 24" aria-hidden="true">
@@ -14,6 +15,8 @@ const SunMark = () => (
 );
 
 const size = (r: (typeof rooms)[number]) => `${r.x1 - r.x0} × ${r.z1 - r.z0} m`;
+const area = (r: (typeof rooms)[number]) => (r.x1 - r.x0) * (r.z1 - r.z0);
+const TOTAL_AREA = rooms.reduce((sum, r) => sum + area(r), 0);
 
 /** A day on a 24-hour strip: each quarter-hour slot is filled by how much of the room it lights. */
 const SunStrip = ({ slots }: { slots: number[] }) => (
@@ -58,6 +61,13 @@ export default function App() {
   };
 
   const toggleFile = () => setFileOpen((open) => !open);
+  // Built in the browser from the same layout data as the 3D house; nothing is fetched.
+  const downloadPlan = () => {
+    const url = URL.createObjectURL(new Blob([planSheetSvg(sun)], { type: 'image/svg+xml' }));
+    const a = Object.assign(document.createElement('a'), { href: url, download: 'solstice-house-plan-1-100-A3.svg' });
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
   const facts = room ? roomFacts[room.id] : null;
 
   // Step one chapter along the walk; -1 is the plan.
@@ -119,7 +129,7 @@ export default function App() {
           <div key={r.id} className="label" ref={(el) => { labelRefs.current[i] = el; }}>
             <b>{r.no}</b>
             <span>{r.name}</span>
-            <i>{size(r)}</i>
+            <i>{size(r)} · {area(r)} m²</i>
           </div>
         ))}
         {dimensions.map((d, i) => (
@@ -134,14 +144,19 @@ export default function App() {
         ))}
       </div>
 
-      <aside className="titleblock" aria-hidden="true">
+      <aside className="titleblock" aria-label="Plan sheet">
         <svg viewBox="0 0 40 40"><circle cx="20" cy="22" r="13" fill="none" stroke="currentColor" strokeWidth="1.2" /><path d="M20 6 L25 24 L20 21 L15 24 Z" fill="currentColor" /><text x="20" y="38" textAnchor="middle" fontSize="7" fill="currentColor">N</text></svg>
         <dl>
           <div><dt>Sheet</dt><dd>Solstice House</dd></div>
           <div><dt>Drawing</dt><dd>Ground floor plan</dd></div>
           <div><dt>Scale</dt><dd>1 : 100</dd></div>
-          <div><dt>Area</dt><dd>438 m²</dd></div>
+          <div><dt>Area</dt><dd>{TOTAL_AREA} m²</dd></div>
         </dl>
+        <div className="scalebar">
+          <span><i /><i /><i /></span>
+          <span className="scalebar__nums" aria-hidden="true"><b>0</b><b>1</b><b>2</b><b>5 m</b></span>
+        </div>
+        <button type="button" className="titleblock__download" onClick={downloadPlan}>Download plan · 1:100 SVG</button>
       </aside>
 
       <aside className={`caption${room ? ' is-on' : ''}`} aria-live="polite">
@@ -173,7 +188,7 @@ export default function App() {
             <h3>{room.name}</h3>
             <dl>
               <div><dt>Size</dt><dd>{size(room)}</dd></div>
-              <div><dt>Area</dt><dd>{(room.x1 - room.x0) * (room.z1 - room.z0)} m²</dd></div>
+              <div><dt>Area</dt><dd>{area(room)} m²</dd></div>
               <div><dt>Opens to</dt><dd>{facts.faces}</dd></div>
               <div><dt>Direct sun</dt><dd>{sun ? <>{sun[roomIndex].hours.toFixed(1)} hours a day<SunStrip slots={sun[roomIndex].slots} /></> : 'Measuring…'}</dd></div>
               <div><dt>Materials</dt><dd>{facts.materials.join(' · ')}</dd></div>
@@ -224,6 +239,7 @@ export default function App() {
         <div className="finale__cta">
           <button type="button" className="btn btn--solid" onClick={() => jumpTo(0)}>Walk again</button>
           <button type="button" className="btn" onClick={() => jumpTo(roomProgress(0))}>Return to the gate</button>
+          <button type="button" className="btn" onClick={downloadPlan}>Download plan</button>
         </div>
         <p className="credit">The walls and plan are drawn in code. Skies, materials and furniture models: <a href="https://polyhaven.com" target="_blank" rel="noreferrer">Poly Haven</a> (CC0).</p>
       </section>
