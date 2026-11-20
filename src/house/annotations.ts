@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import { dimensionSegs, doorSegs, sunPathSegs, windowSegs } from './planGeometry';
+import { dimensionSegs, doorSegs, skylightSegs, sunPathSegs, windowSegs } from './planGeometry';
 
-/** Thin ink lines for the plan sheet: dimensions, sun path, door swings and window symbols. */
+/** Thin ink lines for the plan sheet: dimensions, sun path, door swings, window symbols and dashed skylights. */
 export function buildAnnotations() {
   const Y = 0.12;
   const pts: number[] = [];
-  for (const [x1, z1, x2, z2] of [...dimensionSegs(), ...sunPathSegs(), ...doorSegs(), ...windowSegs()]) pts.push(x1, Y, z1, x2, Y, z2);
+  for (const [x1, z1, x2, z2] of [...dimensionSegs(), ...sunPathSegs(), ...doorSegs(), ...windowSegs(), ...skylightSegs()]) pts.push(x1, Y, z1, x2, Y, z2);
 
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));

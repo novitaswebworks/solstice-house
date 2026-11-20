@@ -76,8 +76,15 @@ export function buildFurniture(g: THREE.Group): Promise<void> {
   box(12.22, 0, 21, 0.2, 2.2, 0.3, stone(0.3, 2.2));
   for (let i = 0; i < 5; i++) box(11, 0, 22.2 + i * 1.1, 1.4, 0.05, 0.7, stone(1.4, 0.7));
 
-  // Hall runner
+  // Hall: runner, and an oak coat rail with four brass hooks on the west wall above the bench.
   rug(11, 13, 1.4, 3.2, C.terracotta, '#7a3520');
+  box(8.135, 1.6, 12.9, 0.03, 0.1, 1.1, floorMaterial('oak', 1.1, 0.1));
+  for (const hz of [12.5, 12.77, 13.03, 13.3]) {
+    const hook = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.012, 0.09, 10), plain('#b08d57', 0.35, 0.9)));
+    hook.rotation.z = Math.PI / 2 - 0.35; // angled up so a coat would stay on
+    hook.position.set(8.19, 1.66, hz);
+    g.add(hook);
+  }
 
   // Living room: rug and a floor lamp (weighted disc, slim brass stem, open linen drum that glows from inside)
   rug(9, 5.9, 4, 3, '#efe3cf', '#b9a58a');
@@ -209,6 +216,13 @@ export function buildFurniture(g: THREE.Group): Promise<void> {
     ['drawer_cabinet', { x: 13.6, z: 13.3, ry: -Math.PI / 2, height: 1.1 }],
     ['ornate_mirror_01', { x: 13.82, z: 13.3, y: 1.35, ry: -Math.PI / 2, height: 0.9 }],
     ['potted_plant_02', { x: 8.8, z: 14.2, height: 0.9 }],
+    // Hall: a pair of framed pictures either side of the living-room door, a pendant over the walk,
+    // a bench under the coat rail, and a bowl for keys on the cabinet.
+    ['hanging_picture_frame_01', { x: 9.0, z: 11.135, y: 1.13, ry: 0, height: 0.84 }],
+    ['hanging_picture_frame_01', { x: 13.0, z: 11.135, y: 1.13, ry: 0, height: 0.84 }],
+    ['modern_ceiling_lamp_01', { x: 11, z: 13, y: 2.25, height: 0.95 }],
+    ['painted_wooden_bench', { x: 8.4, z: 12.9, ry: Math.PI / 2, width: 1.165 }],
+    ['wooden_bowl_01', { x: 13.6, z: 13.3, y: 1.1, width: 0.3 }],
     // Scanned cushions on the sofa
     ['throw_pillows_01', { x: 8.2, z: 3.85, y: 0.42, ry: 0, width: 0.95, lazy: true }],
     // Kitchen and dining

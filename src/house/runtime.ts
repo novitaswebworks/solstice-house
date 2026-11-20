@@ -110,8 +110,11 @@ export function createHouseRuntime(
   const skyReady = sky.ready.then(() => { skyLoaded = true; }).catch((error) => console.warn('Sky failed to load', error));
 
   // Image-based light from the sky does most of the work; these just lift the shade.
-  // Warm lamps in the living room and bedroom that come on towards evening.
-  const lamps = [new THREE.Vector3(4.6, 1.5, 8.2), new THREE.Vector3(3.9, 1.1, -2.6), new THREE.Vector3(19, 2.2, 8.4)].map((position) => {
+  // Warm lamps that come on towards evening: living-room floor lamp, bedside, kitchen, and the Hall pendant.
+  const LAMPS: Array<[THREE.Vector3, number]> = [
+    [new THREE.Vector3(4.6, 1.5, 8.2), 22], [new THREE.Vector3(3.9, 1.1, -2.6), 22], [new THREE.Vector3(19, 2.2, 8.4), 14], [new THREE.Vector3(11, 2.15, 13), 12],
+  ];
+  const lamps = LAMPS.map(([position]) => {
     const light = new THREE.PointLight('#ffb36b', 0, 9, 2);
     light.position.copy(position);
     scene.add(light);
@@ -238,7 +241,7 @@ export function createHouseRuntime(
     sun.intensity = 1.2 + 3.4 * Math.pow(Math.max(0, sunDir.y), 0.6);
 
     const evening = smooth((hour - 16.8) / 2.4);
-    lamps.forEach((l, i) => { l.intensity = evening * (i === 2 ? 14 : 22); });
+    lamps.forEach((l, i) => { l.intensity = evening * LAMPS[i][1]; });
 
     tmpColor.lerpColors(PAPER, fogColor, e);
     (scene.background as THREE.Color).copy(tmpColor);

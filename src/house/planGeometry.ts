@@ -1,6 +1,6 @@
 // Plan-drawing geometry in metres, with no three.js: the opening plan (annotations.ts)
 // and the downloadable drawing sheet (planSheet.ts) both draw from these, so they agree.
-import { walls, dimensions, sunArc, sunMarks, WALL_T, type Wall } from './layout';
+import { walls, dimensions, sunArc, sunMarks, skylights, WALL_T, type Wall } from './layout';
 
 /** A line segment on the plan: [x1, z1, x2, z2]. */
 export type Seg = [number, number, number, number];
@@ -100,6 +100,25 @@ export function sunPathSegs(): Seg[] {
   const segs: Seg[] = [];
   for (let i = 0; i < sunArc.length - 1; i += 2) segs.push([sunArc[i][0], sunArc[i][1], sunArc[i + 1][0], sunArc[i + 1][1]]);
   for (const m of sunMarks) segs.push([m.x - 0.45, m.z, m.x + 0.45, m.z], [m.x, m.z - 0.45, m.x, m.z + 0.45]);
+  return segs;
+}
+
+/** Skylights, dashed as plans show anything overhead: 0.3 m dashes with 0.2 m gaps round each opening. */
+export function skylightSegs(): Seg[] {
+  const segs: Seg[] = [];
+  const dash = (x1: number, z1: number, x2: number, z2: number) => {
+    const len = Math.hypot(x2 - x1, z2 - z1);
+    for (let a = 0; a < len; a += 0.5) {
+      const b = Math.min(len, a + 0.3);
+      segs.push([x1 + ((x2 - x1) * a) / len, z1 + ((z2 - z1) * a) / len, x1 + ((x2 - x1) * b) / len, z1 + ((z2 - z1) * b) / len]);
+    }
+  };
+  for (const s of skylights) {
+    dash(s.x0, s.z0, s.x1, s.z0);
+    dash(s.x1, s.z0, s.x1, s.z1);
+    dash(s.x1, s.z1, s.x0, s.z1);
+    dash(s.x0, s.z1, s.x0, s.z0);
+  }
   return segs;
 }
 

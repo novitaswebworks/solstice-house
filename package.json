@@ -10,9 +10,11 @@
     "test:list": "playwright test --list",
     "record": "node scripts/record-walkthrough.mjs",
     "bake:sun": "node scripts/bake-sun-study.mjs",
-    "test:perf": "PERF=1 playwright test --project=chromium -g @perf"
+    "test:perf": "PERF=1 playwright test --project=chromium -g @perf",
+    "optimize:model": "gltf-transform optimize --compress meshopt --texture-compress webp --texture-size 1024"
   },
   "devDependencies": {
+    "@gltf-transform/cli": "4.1.0",
     "@playwright/test": "1.63.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

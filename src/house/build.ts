@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { rooms, walls, pool, skylight, plotTrees, WALL_H, WALL_T, type Wall } from './layout';
+import { rooms, walls, pool, skylights, plotTrees, WALL_H, WALL_T, type Wall } from './layout';
 import { floorMaterial, plain, plasterMaterial, poolTileMaterial, grassMaterial, waterNormalMap } from './materials';
 import { tileBoxUVs } from './assets';
 import { buildFurniture } from './furniture';
@@ -171,7 +171,7 @@ export function buildHouse(): HouseParts {
     root.add(water);
   }
 
-  // Ceilings: one slab per indoor room, with a skylight over the living room.
+  // Ceilings: one slab per indoor room, cut around any skylight in it.
   const roof = new THREE.Group();
   // Ceilings only see bounce light, so a brighter, more neutral white keeps them from reading tan beside the walls.
   const roofMaterial = new THREE.MeshStandardMaterial({ color: '#f7f5f1', roughness: 0.9, emissive: '#7a7670' });
@@ -186,11 +186,12 @@ export function buildHouse(): HouseParts {
     roof.add(m);
   };
   for (const r of rooms.filter((r) => !r.outdoor)) {
-    if (r.id === 'living') {
-      slab(r.x0 - 0.12, r.z0 - 0.12, r.x1 + 0.12, skylight.z0);
-      slab(r.x0 - 0.12, skylight.z1, r.x1 + 0.12, r.z1 + 0.12);
-      slab(r.x0 - 0.12, skylight.z0, skylight.x0, skylight.z1);
-      slab(skylight.x1, skylight.z0, r.x1 + 0.12, skylight.z1);
+    const sky = skylights.find((s) => s.room === r.id);
+    if (sky) {
+      slab(r.x0 - 0.12, r.z0 - 0.12, r.x1 + 0.12, sky.z0);
+      slab(r.x0 - 0.12, sky.z1, r.x1 + 0.12, r.z1 + 0.12);
+      slab(r.x0 - 0.12, sky.z0, sky.x0, sky.z1);
+      slab(sky.x1, sky.z0, r.x1 + 0.12, sky.z1);
     } else {
       slab(r.x0 - 0.12, r.z0 - 0.12, r.x1 + 0.12, r.z1 + 0.12);
     }

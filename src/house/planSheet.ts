@@ -1,7 +1,7 @@
 // The downloadable drawing: an A3 sheet in millimetres with the ground plan at 1:100
 // (1 m = 10 mm), so printing at 100% gives a drawing you can measure with a scale rule.
 import { rooms, dimensions } from './layout';
-import { wallSolids, windowSegs, doorSegs, dimensionSegs, planBounds, type Seg } from './planGeometry';
+import { wallSolids, windowSegs, doorSegs, dimensionSegs, skylightSegs, planBounds, type Seg } from './planGeometry';
 import type { RoomSun } from './runtime';
 
 const SHEET = { w: 297, h: 420 };
@@ -48,6 +48,7 @@ export function planSheetSvg(sun: RoomSun[] | null, date = new Date().toISOStrin
   parts.push(lines(dimensionSegs(), INK, 0.15));
   parts.push(lines(doorSegs(), INK, 0.15));
   parts.push(lines(windowSegs(), INK, 0.13));
+  parts.push(lines(skylightSegs(), INK, 0.13));
   parts.push(`<g fill="${INK}">${wallSolids().map((w) => `<rect x="${X(w.x0)}" y="${Y(w.z0)}" width="${n((w.x1 - w.x0) * MM_PER_M)}" height="${n((w.z1 - w.z0) * MM_PER_M)}"/>`).join('')}</g>`);
 
   rooms.forEach((r, i) => {

@@ -92,20 +92,26 @@ export const walls: Wall[] = [
   { x1: 8, z1: 21, x2: 14, z2: 21, h: COURT_H, openings: [{ at: 11, w: 2.4, h: COURT_H }] },
 ];
 
-/** A square opening in the living-room ceiling that lets a pool of sun onto the rug. */
-export const skylight = { x0: 7.2, z0: 4.6, x1: 10.2, z1: 6.4 };
+/** Openings in the ceilings. The living room's lets a pool of sun onto the rug; the Hall's is a narrow slot
+ * along its east side, so a stripe of sun crosses the floor and the mirror wall as the day turns. */
+export const skylights = [
+  { room: 'living', x0: 7.2, z0: 4.6, x1: 10.2, z1: 6.4 },
+  { room: 'hall', x0: 12.5, z0: 11.5, x1: 13.3, z1: 14.5 },
+];
 
 export const pool = { x0: 15, z0: -4.5, x1: 21, z1: -2.5, depth: 1.3 };
 
 /** Camera positions along the walk. Eye height is added in the runtime. */
 export const walkPositions: Array<[number, number]> = [
-  [11, 27], [11, 23.5], [11, 20], [11, 17], [11, 13], [11, 9.5], [11.5, 8], [12.8, 7], [15, 7], [17.5, 6],
+  // Through the Hall in four steps so it reads as a pause, not a corridor.
+  [11, 27], [11, 23.5], [11, 20], [11, 17], [11, 14.4], [11, 13.6], [11, 12.7], [11, 11.9], [11, 9.5], [11.5, 8], [12.8, 7], [15, 7], [17.5, 6],
   [18, 4], [18, 2], [17, 0], [14, -1.5], [12.5, -2], [10, -2], [7, -2],
 ];
 
 /** What the camera looks at for each position: [x, y, z]. */
 export const walkTargets: Array<[number, number, number]> = [
-  [11, 1.7, 17], [11, 1.7, 14], [11, 1.7, 12], [11, 1.6, 10], [11, 1.6, 7], [7.5, 1.1, 4.5], [5.5, 1.1, 5.5], [16.5, 1.4, 6.8],
+  // In the Hall: face the pictures and the pendant, glance left at the bench, right at the mirror, then go through.
+  [11, 1.7, 17], [11, 1.7, 14], [11, 1.7, 12], [11, 1.6, 10], [11, 1.75, 11], [8.3, 1.15, 12.9], [13.7, 1.4, 12.9], [11, 1.6, 7], [7.5, 1.1, 4.5], [5.5, 1.1, 5.5], [16.5, 1.4, 6.8],
   [21, 1.2, 6.5], [21, 1.1, 8.5], [18, 1.5, -1], [18, 1.2, -3.5], [17, 0.9, -3.5], [13, 1.2, -3.5],
   [9, 1.4, -2], [6, 1.3, -2], [4, 1, -1],
 ];
@@ -129,7 +135,7 @@ export const dimensions = [
 /** Facts shown in the room file. */
 export const roomFacts: Record<string, { faces: string; materials: string[] }> = {
   court: { faces: 'South, to the street', materials: ['Pale gravel', 'Rendered walls', 'Stepping stones', 'Olive tree'] },
-  hall: { faces: 'South, to the gate', materials: ['Terrazzo floor', 'White plaster', 'Walnut and brass'] },
+  hall: { faces: 'South, to the gate; slot skylight', materials: ['Terrazzo floor', 'White plaster', 'Walnut and brass', 'Painted bench'] },
   living: { faces: 'West window, north glass door, skylight', materials: ['Oak boards', 'White plaster', 'Black leather', 'Linen rug'] },
   kitchen: { faces: 'East window, north glass doors', materials: ['Stone tile', 'Green cabinetry', 'Timber table', 'Tiled splashback'] },
   terrace: { faces: 'Open to the sky, north and east', materials: ['Grey timber deck', 'Pool tile', 'Planters'] },

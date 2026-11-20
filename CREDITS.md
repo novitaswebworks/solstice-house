@@ -8,11 +8,12 @@ Photographic assets come from [Poly Haven](https://polyhaven.com) and are releas
 
 - **Skies (HDRI):** `kiara_2_sunrise`, `kiara_3_morning`, `kiara_5_noon`, `kiara_6_afternoon`, `kiara_7_late-afternoon`, `kiara_8_sunset`
 - **Materials:** `wood_floor`, `dark_wooden_planks`, `terrazzo_tiles`, `large_floor_tiles_02`, `wood_planks_grey`, `gravel_floor_02`, `white_plaster_02`, `long_white_tiles`, `rough_linen`, `leafy_grass`
-- **Models:** `sofa_02`, `mid_century_lounge_chair`, `modern_coffee_table_01`, `modern_wooden_cabinet`, `wooden_display_shelves_01`, `side_table_tall_01`, `drawer_cabinet`, `ornate_mirror_01`, `dining_chair_02`, `bar_chair_round_01`, `painted_wooden_nightstand`, `modern_arm_chair_01`, `Ottoman_01`, `planter_box_01`, `potted_plant_02`, `fern_02`, `calathea_orbifolia_01`, `shrub_02`, `searsia_lucida`, `throw_pillows_01`, `ceramic_vase_01`
+- **Models:** `sofa_02`, `mid_century_lounge_chair`, `modern_coffee_table_01`, `modern_wooden_cabinet`, `wooden_display_shelves_01`, `side_table_tall_01`, `drawer_cabinet`, `ornate_mirror_01`, `dining_chair_02`, `bar_chair_round_01`, `painted_wooden_nightstand`, `modern_arm_chair_01`, `Ottoman_01`, `planter_box_01`, `potted_plant_02`, `fern_02`, `calathea_orbifolia_01`, `shrub_02`, `searsia_lucida`, `throw_pillows_01`, `ceramic_vase_01`, `hanging_picture_frame_01`, `modern_ceiling_lamp_01`, `painted_wooden_bench`, `wooden_bowl_01`
 
 Textures were converted to WebP, and models were optimised with glTF-Transform (Meshopt compression,
 1024 px textures, and a lower triangle count for `searsia_lucida`).
-`throw_pillows_01` and `ceramic_vase_01` were optimised the same way (glTF-Transform 4.1.0: Meshopt, WebP, 1024 px).
+`throw_pillows_01`, `ceramic_vase_01` and the four Hall models were optimised the same way (glTF-Transform 4.1.0:
+Meshopt, WebP, 1024 px); `npm run optimize:model -- <in.gltf> <out.glb>` repeats it.
 
 Garden trees, the olive, the bed and the kitchen joinery are drawn in code; leaf and bark textures are
 painted on a canvas at load time.

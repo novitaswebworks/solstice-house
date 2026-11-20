@@ -134,8 +134,22 @@ function loadModel(id: string, lazy: boolean) {
         m.castShadow = true;
         m.receiveShadow = true;
         const mat = m.material as THREE.MeshStandardMaterial;
-        // Cut-out leaves sort and cast shadows better than blended ones.
-        if (mat.transparent) {
+        // Blended glass (the picture frame's) is exported with the frame's opaque dark texture and no transmission,
+        // so it covered the artwork like a black sheet. Rebuild it as clear, faintly reflective glass.
+        // Opaque "glass" (the pendant's white globe) is left alone.
+        if (mat.transparent && /glass/i.test(mat.name)) {
+          mat.map = null;
+          mat.roughnessMap = null;
+          mat.metalnessMap = null;
+          mat.color.set('#ffffff');
+          mat.opacity = 0.12;
+          mat.roughness = 0.04;
+          mat.metalness = 0;
+          mat.depthWrite = false;
+          m.castShadow = false;
+          m.userData.noAO = true;
+        } else if (mat.transparent) {
+          // Cut-out leaves sort and cast shadows better than blended ones.
           mat.transparent = false;
           mat.alphaTest = 0.5;
           mat.depthWrite = true;
